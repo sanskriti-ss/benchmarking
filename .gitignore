@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 responses.csv
 .env
+.env.local
+*.log
+.DS_Store
