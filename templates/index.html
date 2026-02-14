@@ -96,43 +96,49 @@
     </style>
 </head>
 <body class="papyrus-bg text-amber-900 font-crimson leading-relaxed min-h-screen py-8">
-    <div class="max-w-4xl mx-auto p-5">
-        <header class="scroll-header text-amber-50 p-6 mb-6 rounded-lg shadow-lg border-2 border-amber-800">
-            <h1 class="text-3xl font-cinzel font-bold">📜 LLM Agreeability Benchmark</h1>
-            <p class="opacity-90 mt-2 font-crimson italic text-lg">Test how different LLMs respond to misconceptions and ethical dilemmas</p>
+    <div class="max-w-4xl mx-auto px-8">
+        <header class="scroll-header text-amber-50 p-6 mb-8 shadow-lg">
+            <h1 class="text-3xl font-cinzel font-bold text-center">📜 LLM Agreeability Benchmark</h1>
+            <p class="opacity-90 mt-2 font-crimson italic text-lg text-center">Test how different LLMs respond to misconceptions and ethical dilemmas</p>
         </header>
 
-        <nav class="flex gap-3 mb-6">
-            <a href="{{ url_for('index') }}" class="px-5 py-2.5 bg-amber-800 text-amber-50 rounded border-2 border-amber-900 hover:bg-amber-700 transition font-cinzel text-sm shadow">Dashboard</a>
-            <a href="{{ url_for('api_keys') }}" class="px-5 py-2.5 bg-amber-800 text-amber-50 rounded border-2 border-amber-900 hover:bg-amber-700 transition font-cinzel text-sm shadow">API Keys</a>
-            <a href="{{ url_for('questions') }}" class="px-5 py-2.5 bg-amber-800 text-amber-50 rounded border-2 border-amber-900 hover:bg-amber-700 transition font-cinzel text-sm shadow">Edit Questions</a>
+        <nav class="flex gap-3 mb-8 justify-center">
+            <a href="{{ url_for('index') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">Dashboard</a>
+            <a href="{{ url_for('api_keys') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">API Keys</a>
+            <a href="{{ url_for('questions') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">Edit Questions</a>
         </nav>
 
-        <div class="parchment rounded-lg p-6 mb-6 border-2 border-amber-300">
-            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4">📋 API Keys Status</h2>
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center"><span class="wax-seal"></span> API Keys Status</h2>
             {% if has_keys %}
-                <span class="px-3 py-1.5 bg-green-800 text-green-50 rounded text-sm font-cinzel border border-green-900">✓ API keys configured</span>
+                <span class="px-3 py-1.5 bg-green-800 text-green-50 text-sm font-cinzel border border-green-900">✓ API keys configured</span>
             {% else %}
-                <span class="px-3 py-1.5 bg-red-800 text-red-50 rounded text-sm font-cinzel border border-red-900">✗ No API keys configured</span>
-                <p class="mt-3 font-crimson">Please <a href="{{ url_for('api_keys') }}" class="text-amber-700 hover:text-amber-900 underline decoration-dotted">add your API keys</a> to run benchmarks.</p>
+                <span class="px-3 py-1.5 bg-red-800 text-red-50 text-sm font-cinzel border border-red-900">✗ No API keys configured</span>
+                <p class="mt-3 font-crimson">Please <a href="{{ url_for('api_keys') }}" class="text-amber-700 hover:text-amber-900 underline decoration-wavy">add your API keys</a> to run benchmarks.</p>
             {% endif %}
         </div>
 
-        <div class="parchment rounded-lg p-6 mb-6 border-2 border-amber-300">
-            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4">📜 Questions ({{ questions|length }})</h2>
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center"><span class="wax-seal"></span> Questions ({{ questions|length }})</h2>
             <ul class="space-y-3">
                 {% for q in questions[:5] %}
-                    <li class="p-3 bg-amber-50/50 rounded border-l-4 border-amber-700 font-crimson text-amber-800">{{ q[:100] }}{% if q|length > 100 %}...{% endif %}</li>
+                    <li class="question-item p-3 font-crimson text-amber-800">{{ q[:100] }}{% if q|length > 100 %}...{% endif %}</li>
                 {% endfor %}
                 {% if questions|length > 5 %}
                     <li class="p-3 italic text-amber-600 font-crimson">...and {{ questions|length - 5 }} more</li>
                 {% endif %}
             </ul>
-            <a href="{{ url_for('questions') }}" class="inline-block mt-4 text-amber-700 hover:text-amber-900 font-cinzel underline decoration-dotted">Edit questions →</a>
+            <a href="{{ url_for('questions') }}" class="inline-block mt-4 text-amber-700 hover:text-amber-900 font-cinzel underline decoration-wavy">Edit questions →</a>
         </div>
 
-        <div class="parchment rounded-lg p-6 mb-6 border-2 border-amber-300">
-            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4">⚗️ Run Benchmark</h2>
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center"><span class="wax-seal"></span> Run Benchmark</h2>
             <p class="mb-4 font-crimson text-amber-800">Select which LLMs to test:</p>
             <div class="flex gap-6 mb-5">
                 <label class="flex items-center gap-2 cursor-pointer font-crimson text-amber-800">
@@ -143,7 +149,7 @@
                 </label>
             </div>
             <button id="run-btn" {% if not has_keys %}disabled{% endif %} 
-                    class="px-6 py-3 bg-amber-800 text-amber-50 rounded border-2 border-amber-900 hover:bg-amber-700 transition font-cinzel disabled:bg-stone-400 disabled:border-stone-500 disabled:cursor-not-allowed shadow">
+                    class="parchment-btn px-6 py-3 text-amber-50 font-cinzel disabled:opacity-50 disabled:cursor-not-allowed">
                 Run Benchmark
             </button>
             

@@ -27,7 +27,7 @@ def call_anthropic(prompt: str, api_key: str) -> str:
     response = requests.post(url, headers=headers, json=data)
     return response.json()["choices"][0]["message"]["content"]
 
-# Add more LLMs here as needed
+# Add more LLMs here if we get credits
 
 LLM_FUNCTIONS = {
     "openai": call_openai,

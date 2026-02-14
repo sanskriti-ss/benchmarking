@@ -7,34 +7,92 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        .papyrus-bg { background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #f0e0c8 100%); }
-        .parchment { background: linear-gradient(180deg, #fdf6e3 0%, #f5e6d3 50%, #ede0c8 100%); box-shadow: inset 0 0 50px rgba(139,119,101,0.2), 0 4px 15px rgba(0,0,0,0.1); }
-        .scroll-header { background: linear-gradient(135deg, #8b4513 0%, #654321 50%, #8b4513 100%); }
+        .papyrus-bg { 
+            background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #f0e0c8 100%); 
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"), 
+                            linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #f0e0c8 100%);
+        }
+        .scroll-container {
+            position: relative;
+            background: linear-gradient(180deg, #fdf6e3 0%, #f5e6d3 50%, #ede0c8 100%);
+            border: 3px solid #8b7355;
+            box-shadow: inset 0 0 30px rgba(139,119,101,0.3), 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .scroll-container::before,
+        .scroll-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: linear-gradient(90deg, #654321 0%, #8b4513 10%, #a0522d 50%, #8b4513 90%, #654321 100%);
+            border: 2px solid #4a3520;
+        }
+        .scroll-container::before { top: -25px; box-shadow: 0 -3px 10px rgba(0,0,0,0.3); }
+        .scroll-container::after { bottom: -25px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+        .scroll-roll-left, .scroll-roll-right {
+            position: absolute; top: -30px; bottom: -30px; width: 20px;
+            background: radial-gradient(ellipse at center, #a0522d 0%, #654321 100%);
+            border: 2px solid #4a3520; z-index: 10;
+        }
+        .scroll-roll-left { left: -20px; border-radius: 10px 0 0 10px; }
+        .scroll-roll-right { right: -20px; border-radius: 0 10px 10px 0; }
+        .scroll-header { 
+            background: linear-gradient(135deg, #8b4513 0%, #654321 50%, #8b4513 100%); 
+            border: 3px solid #4a3520;
+            position: relative;
+        }
+        .scroll-header::before, .scroll-header::after {
+            content: '⚜'; position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 1.5rem; color: #d4a574;
+        }
+        .scroll-header::before { left: 15px; }
+        .scroll-header::after { right: 15px; }
         .font-cinzel { font-family: 'Cinzel', serif; }
         .font-crimson { font-family: 'Crimson Text', serif; }
+        .parchment-btn {
+            background: linear-gradient(180deg, #c4956a 0%, #a67c52 100%);
+            border: 2px solid #654321;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .parchment-btn:hover { background: linear-gradient(180deg, #d4a574 0%, #b8896a 100%); }
+        .wax-seal {
+            display: inline-block; width: 20px; height: 20px;
+            background: radial-gradient(circle at 30% 30%, #c41e3a 0%, #8b0000 100%);
+            border-radius: 50%; margin-right: 8px;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3), 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .parchment-textarea {
+            background: rgba(253, 246, 227, 0.8);
+            border: 2px solid #8b7355;
+        }
     </style>
 </head>
-<body class="papyrus-bg text-amber-900 font-crimson leading-relaxed min-h-screen">
-    <div class="max-w-3xl mx-auto p-5">
-        <header class="scroll-header text-amber-50 p-6 mb-6 rounded-lg shadow-lg border-2 border-amber-800">
-            <h1 class="text-3xl font-cinzel font-bold">📝 Edit Questions</h1>
+<body class="papyrus-bg text-amber-900 font-crimson leading-relaxed min-h-screen py-8">
+    <div class="max-w-3xl mx-auto px-8">
+        <header class="scroll-header text-amber-50 p-6 mb-8 shadow-lg">
+            <h1 class="text-3xl font-cinzel font-bold text-center">📝 Edit Questions</h1>
         </header>
 
-        <nav class="flex gap-3 mb-6">
-            <a href="{{ url_for('index') }}" class="px-5 py-2.5 bg-amber-800 text-amber-50 rounded border-2 border-amber-900 hover:bg-amber-700 transition font-cinzel text-sm shadow">← Back to Dashboard</a>
+        <nav class="flex gap-3 mb-8 justify-center">
+            <a href="{{ url_for('index') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">← Back to Dashboard</a>
         </nav>
 
-        <div class="parchment border-l-4 border-amber-600 p-4 mb-6 rounded-r-lg">
-            <strong class="font-cinzel">💡 Tip:</strong> <span class="font-crimson italic text-amber-700">Enter one question per line. These questions will be sent to each selected LLM during the benchmark.</span>
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <p class="font-crimson text-amber-700"><strong class="font-cinzel">💡 Tip:</strong> <em>Enter one question per line. These questions will be sent to each selected LLM during the benchmark.</em></p>
         </div>
 
-        <div class="parchment rounded-lg p-6 mb-6 border-2 border-amber-300">
-            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4">📜 Your Questions</h2>
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center"><span class="wax-seal"></span> Your Questions</h2>
             <form method="POST">
                 <textarea name="questions" placeholder="Enter one question per line..." 
-                          class="w-full h-96 p-4 bg-amber-50 border-2 border-amber-300 rounded text-base font-crimson leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-amber-500 text-amber-800">{% for q in questions %}{{ q }}
+                          class="parchment-textarea w-full h-96 p-4 text-base font-crimson leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-amber-500 text-amber-800">{% for q in questions %}{{ q }}
 {% endfor %}</textarea>
-                <button type="submit" class="mt-4 px-6 py-3 bg-amber-800 text-amber-50 rounded border-2 border-amber-900 hover:bg-amber-700 transition font-cinzel shadow">Save Questions</button>
+                <button type="submit" class="parchment-btn mt-4 px-6 py-3 text-amber-50 font-cinzel">Save Questions</button>
             </form>
         </div>
     </div>
