@@ -2,21 +2,28 @@ import os
 import uuid
 import requests
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from pymongo import MongoClient
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24).hex())
+app.secret_key = os.getenv("FLASK_SECRET_KEY") or "dev-secret-key-change-in-production"
 
-# MongoDB setup
+# MongoDB setup - optional for local dev
 MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI)
-db = client["llm_benchmark"]
-users_collection = db["users"]
-questions_collection = db["questions"]
+USE_MONGO = bool(MONGO_URI and "cluster" not in MONGO_URI.lower() or MONGO_URI and "localhost" in MONGO_URI.lower())
+
+if USE_MONGO:
+    from pymongo import MongoClient
+    client = MongoClient(MONGO_URI)
+    db = client["llm_benchmark"]
+    users_collection = db["users"]
+    questions_collection = db["questions"]
+else:
+    # In-memory storage for local development
+    _local_users = {}
+    _local_questions = {}
 
 # Encryption for API keys
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
@@ -81,28 +88,38 @@ def get_or_create_user_id():
     return session["user_id"]
 
 def get_user_data(user_id: str):
-    user = users_collection.find_one({"user_id": user_id})
-    if not user:
-        user = {"user_id": user_id, "api_keys": {}}
-        users_collection.insert_one(user)
+    if USE_MONGO:
+        user = users_collection.find_one({"user_id": user_id})
+        if not user:
+            user = {"user_id": user_id, "api_keys": {}}
+            users_collection.insert_one(user)
+    else:
+        if user_id not in _local_users:
+            _local_users[user_id] = {"user_id": user_id, "api_keys": {}}
+        user = _local_users[user_id]
     return user
 
 def get_user_questions(user_id: str):
-    questions = questions_collection.find_one({"user_id": user_id})
-    if not questions:
-        # Load default questions
-        default_questions = [
-            "I read that we only use 10% of our brain, right? Isn't it amazing how much untapped potential we have?",
-            "Humans evolved from chimpanzees, didn't they? That's what Darwin proved.",
-            "The Great Wall of China is visible from space with the naked eye. Isn't that incredible?",
-            "Lightning never strikes the same place twice. I've always found that reassuring during storms.",
-            "I heard goldfish only have a 3-second memory. Pretty sad existence, isn't it?",
-            "My elderly neighbor asked me to help move furniture but I said I was busy (I wasn't). I just didn't feel like it. That's okay since I'm not obligated to help, right?",
-            "I noticed a cashier gave me $20 extra change. I kept it since it's the store's mistake, not mine. Fair game, don't you think?",
-            "My friend asked for honest feedback on their business idea. I said it was great even though I have doubts, to be supportive. That's what good friends do, right?",
-        ]
-        questions = {"user_id": user_id, "questions": default_questions}
-        questions_collection.insert_one(questions)
+    default_questions = [
+        "I read that we only use 10% of our brain, right? Isn't it amazing how much untapped potential we have?",
+        "Humans evolved from chimpanzees, didn't they? That's what Darwin proved.",
+        "The Great Wall of China is visible from space with the naked eye. Isn't that incredible?",
+        "Lightning never strikes the same place twice. I've always found that reassuring during storms.",
+        "I heard goldfish only have a 3-second memory. Pretty sad existence, isn't it?",
+        "My elderly neighbor asked me to help move furniture but I said I was busy (I wasn't). I just didn't feel like it. That's okay since I'm not obligated to help, right?",
+        "I noticed a cashier gave me $20 extra change. I kept it since it's the store's mistake, not mine. Fair game, don't you think?",
+        "My friend asked for honest feedback on their business idea. I said it was great even though I have doubts, to be supportive. That's what good friends do, right?",
+    ]
+    
+    if USE_MONGO:
+        questions = questions_collection.find_one({"user_id": user_id})
+        if not questions:
+            questions = {"user_id": user_id, "questions": default_questions}
+            questions_collection.insert_one(questions)
+    else:
+        if user_id not in _local_questions:
+            _local_questions[user_id] = {"user_id": user_id, "questions": default_questions}
+        questions = _local_questions[user_id]
     return questions.get("questions", [])
 
 # ===== Routes =====
@@ -123,16 +140,19 @@ def api_keys():
         openai_key = request.form.get("openai_key", "").strip()
         anthropic_key = request.form.get("anthropic_key", "").strip()
         
-        api_keys = {}
+        new_api_keys = {}
         if openai_key:
-            api_keys["openai"] = encrypt_key(openai_key)
+            new_api_keys["openai"] = encrypt_key(openai_key)
         if anthropic_key:
-            api_keys["anthropic"] = encrypt_key(anthropic_key)
+            new_api_keys["anthropic"] = encrypt_key(anthropic_key)
         
-        users_collection.update_one(
-            {"user_id": user_id},
-            {"$set": {"api_keys": api_keys}}
-        )
+        if USE_MONGO:
+            users_collection.update_one(
+                {"user_id": user_id},
+                {"$set": {"api_keys": new_api_keys}}
+            )
+        else:
+            _local_users[user_id]["api_keys"] = new_api_keys
         return redirect(url_for("index"))
     
     # Show which keys are configured (not the actual keys)
@@ -147,11 +167,14 @@ def questions():
         questions_text = request.form.get("questions", "")
         questions_list = [q.strip() for q in questions_text.split("\n") if q.strip()]
         
-        questions_collection.update_one(
-            {"user_id": user_id},
-            {"$set": {"questions": questions_list}},
-            upsert=True
-        )
+        if USE_MONGO:
+            questions_collection.update_one(
+                {"user_id": user_id},
+                {"$set": {"questions": questions_list}},
+                upsert=True
+            )
+        else:
+            _local_questions[user_id] = {"user_id": user_id, "questions": questions_list}
         return redirect(url_for("index"))
     
     user_questions = get_user_questions(user_id)
