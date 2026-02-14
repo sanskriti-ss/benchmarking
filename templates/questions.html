@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Questions - LLM Benchmark</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans leading-relaxed">
+    <div class="max-w-3xl mx-auto p-5">
+        <header class="bg-slate-800 text-white p-5 mb-5 rounded-lg">
+            <h1 class="text-2xl font-bold">📝 Edit Questions</h1>
+        </header>
+
+        <nav class="flex gap-2 mb-5">
+            <a href="{{ url_for('index') }}" class="px-5 py-2.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">← Back to Dashboard</a>
+        </nav>
+
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-5 rounded-r-md">
+            <strong>💡 Tip:</strong> Enter one question per line. These questions will be sent to each selected LLM during the benchmark.
+        </div>
+
+        <div class="bg-white rounded-lg p-5 mb-5 shadow">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">Your Questions</h2>
+            <form method="POST">
+                <textarea name="questions" placeholder="Enter one question per line..." 
+                          class="w-full h-96 p-4 border border-gray-300 rounded-md text-base font-sans leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-500">{% for q in questions %}{{ q }}
+{% endfor %}</textarea>
+                <button type="submit" class="mt-4 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium">Save Questions</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

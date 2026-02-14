@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Agreeability Benchmark</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans leading-relaxed">
+    <div class="max-w-4xl mx-auto p-5">
+        <header class="bg-slate-800 text-white p-5 mb-5 rounded-lg">
+            <h1 class="text-2xl font-bold">🧪 LLM Agreeability Benchmark</h1>
+            <p class="opacity-80 mt-1">Test how different LLMs respond to misconceptions and ethical dilemmas</p>
+        </header>
+
+        <nav class="flex gap-2 mb-5">
+            <a href="{{ url_for('index') }}" class="px-5 py-2.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">Dashboard</a>
+            <a href="{{ url_for('api_keys') }}" class="px-5 py-2.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">API Keys</a>
+            <a href="{{ url_for('questions') }}" class="px-5 py-2.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">Edit Questions</a>
+        </nav>
+
+        <div class="bg-white rounded-lg p-5 mb-5 shadow">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">API Keys Status</h2>
+            {% if has_keys %}
+                <span class="px-3 py-1 bg-green-600 text-white rounded text-sm">✓ API keys configured</span>
+            {% else %}
+                <span class="px-3 py-1 bg-red-500 text-white rounded text-sm">✗ No API keys configured</span>
+                <p class="mt-2">Please <a href="{{ url_for('api_keys') }}" class="text-blue-500 hover:underline">add your API keys</a> to run benchmarks.</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-lg p-5 mb-5 shadow">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">Questions ({{ questions|length }})</h2>
+            <ul class="space-y-2">
+                {% for q in questions[:5] %}
+                    <li class="p-3 bg-gray-50 rounded border-l-4 border-blue-500">{{ q[:100] }}{% if q|length > 100 %}...{% endif %}</li>
+                {% endfor %}
+                {% if questions|length > 5 %}
+                    <li class="p-3 italic text-gray-500">...and {{ questions|length - 5 }} more</li>
+                {% endif %}
+            </ul>
+            <a href="{{ url_for('questions') }}" class="inline-block mt-3 text-blue-500 hover:underline">Edit questions →</a>
+        </div>
+
+        <div class="bg-white rounded-lg p-5 mb-5 shadow">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">Run Benchmark</h2>
+            <p class="mb-3">Select which LLMs to test:</p>
+            <div class="flex gap-4 mb-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="llm-openai" value="openai" class="w-4 h-4 accent-blue-500"> OpenAI (GPT-3.5)
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="llm-anthropic" value="anthropic" class="w-4 h-4 accent-blue-500"> Anthropic (Claude)
+                </label>
+            </div>
+            <button id="run-btn" {% if not has_keys %}disabled{% endif %} 
+                    class="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium disabled:bg-gray-400 disabled:cursor-not-allowed">
+                Run Benchmark
+            </button>
+            
+            <div id="loading" class="text-center py-5 hidden">
+                <div class="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+                <p class="mt-2 text-gray-600">Running benchmark... This may take a few minutes.</p>
+            </div>
+            
+            <div id="results-container" class="mt-5"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('run-btn').addEventListener('click', async function() {
+            const selectedLlms = [];
+            if (document.getElementById('llm-openai').checked) selectedLlms.push('openai');
+            if (document.getElementById('llm-anthropic').checked) selectedLlms.push('anthropic');
+            
+            if (selectedLlms.length === 0) {
+                alert('Please select at least one LLM');
+                return;
+            }
+            
+            this.disabled = true;
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results-container').innerHTML = '';
+            
+            try {
+                const response = await fetch('/run-benchmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ llms: selectedLlms })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    displayResults(data.results, data.llms);
+                }
+            } catch (err) {
+                alert('Error running benchmark: ' + err.message);
+            } finally {
+                this.disabled = false;
+                document.getElementById('loading').classList.add('hidden');
+            }
+        });
+        
+        function displayResults(results, llms) {
+            const container = document.getElementById('results-container');
+            let html = '<h3 class="text-lg font-semibold mt-5 mb-4">Results</h3>';
+            
+            results.forEach((result, idx) => {
+                html += `<div class="bg-gray-50 p-4 mb-4 rounded-lg">
+                    <div class="font-bold text-slate-800 mb-3">${idx + 1}. ${result.question}</div>`;
+                
+                llms.forEach(llm => {
+                    if (result[llm]) {
+                        html += `<div class="ml-2 p-3 bg-white rounded mb-2">
+                            <strong class="text-blue-500">${llm.toUpperCase()}:</strong> ${result[llm]}
+                        </div>`;
+                    }
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
