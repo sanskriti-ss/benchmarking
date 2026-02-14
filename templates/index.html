@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Agreeability Benchmark</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+    <style>
+        .papyrus-bg { 
+            background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #f0e0c8 100%); 
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"), 
+                            linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #f0e0c8 100%);
+        }
+        .scroll-container {
+            position: relative;
+            background: linear-gradient(180deg, #fdf6e3 0%, #f5e6d3 50%, #ede0c8 100%);
+            border: 3px solid #8b7355;
+            box-shadow: inset 0 0 30px rgba(139,119,101,0.3), 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .scroll-container::before,
+        .scroll-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: linear-gradient(90deg, #654321 0%, #8b4513 10%, #a0522d 50%, #8b4513 90%, #654321 100%);
+            border: 2px solid #4a3520;
+        }
+        .scroll-container::before {
+            top: -25px;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 -3px 10px rgba(0,0,0,0.3), inset 0 5px 10px rgba(255,255,255,0.2);
+        }
+        .scroll-container::after {
+            bottom: -25px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3), inset 0 -5px 10px rgba(255,255,255,0.2);
+        }
+        .scroll-roll-left,
+        .scroll-roll-right {
+            position: absolute;
+            top: -30px;
+            bottom: -30px;
+            width: 20px;
+            background: radial-gradient(ellipse at center, #a0522d 0%, #654321 100%);
+            border: 2px solid #4a3520;
+            z-index: 10;
+        }
+        .scroll-roll-left { left: -20px; border-radius: 10px 0 0 10px; }
+        .scroll-roll-right { right: -20px; border-radius: 0 10px 10px 0; }
+        .scroll-header { 
+            background: linear-gradient(135deg, #8b4513 0%, #654321 50%, #8b4513 100%); 
+            border: 3px solid #4a3520;
+            position: relative;
+        }
+        .scroll-header::before,
+        .scroll-header::after {
+            content: '⚜';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: #d4a574;
+        }
+        .scroll-header::before { left: 15px; }
+        .scroll-header::after { right: 15px; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-crimson { font-family: 'Crimson Text', serif; }
+        .parchment-btn {
+            background: linear-gradient(180deg, #c4956a 0%, #a67c52 100%);
+            border: 2px solid #654321;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 5px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+        }
+        .parchment-btn:hover {
+            background: linear-gradient(180deg, #d4a574 0%, #b8896a 100%);
+        }
+        .question-item {
+            background: rgba(253, 246, 227, 0.7);
+            border-left: 4px solid #8b4513;
+            border-top: 1px solid #d4a574;
+            border-bottom: 1px solid #c4956a;
+        }
+        .wax-seal {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%, #c41e3a 0%, #8b0000 100%);
+            border-radius: 50%;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3), 1px 1px 3px rgba(0,0,0,0.2);
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body class="papyrus-bg text-amber-900 font-crimson leading-relaxed min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-8">
+        <header class="scroll-header text-amber-50 p-6 mb-8 shadow-lg">
+            <h1 class="text-3xl font-cinzel font-bold text-center">📜 LLM Agreeability Benchmark</h1>
+            <p class="opacity-90 mt-2 font-crimson italic text-lg text-center">Test how different LLMs respond to misconceptions and ethical dilemmas</p>
+        </header>
+
+        <nav class="flex gap-3 mb-8 justify-center">
+            <a href="{{ url_for('index') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">Dashboard</a>
+            <a href="{{ url_for('api_keys') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">API Keys</a>
+            <a href="{{ url_for('questions') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">Edit Questions</a>
+        </nav>
+
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center"><span class="wax-seal"></span> API Keys Status</h2>
+            {% if has_keys %}
+                <span class="px-3 py-1.5 bg-green-800 text-green-50 text-sm font-cinzel border border-green-900">✓ API keys configured</span>
+            {% else %}
+                <span class="px-3 py-1.5 bg-red-800 text-red-50 text-sm font-cinzel border border-red-900">✗ No API keys configured</span>
+                <p class="mt-3 font-crimson">Please <a href="{{ url_for('api_keys') }}" class="text-amber-700 hover:text-amber-900 underline decoration-wavy">add your API keys</a> to run benchmarks.</p>
+            {% endif %}
+        </div>
+
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center"><span class="wax-seal"></span> Questions ({{ questions|length }})</h2>
+            <ul class="space-y-3">
+                {% for q in questions[:5] %}
+                    <li class="question-item p-3 font-crimson text-amber-800">{{ q[:100] }}{% if q|length > 100 %}...{% endif %}</li>
+                {% endfor %}
+                {% if questions|length > 5 %}
+                    <li class="p-3 italic text-amber-600 font-crimson">...and {{ questions|length - 5 }} more</li>
+                {% endif %}
+            </ul>
+            <a href="{{ url_for('questions') }}" class="inline-block mt-4 text-amber-700 hover:text-amber-900 font-cinzel underline decoration-wavy">Edit questions →</a>
+        </div>
+
+        <div class="scroll-container p-6 mb-12 mx-4 relative">
+            <div class="scroll-roll-left"></div>
+            <div class="scroll-roll-right"></div>
+            <h2 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center"><span class="wax-seal"></span> Run Benchmark</h2>
+            <p class="mb-4 font-crimson text-amber-800">Select which LLMs to test:</p>
+            <div class="flex gap-6 mb-5">
+                <label class="flex items-center gap-2 cursor-pointer font-crimson text-amber-800">
+                    <input type="checkbox" id="llm-openai" value="openai" class="w-4 h-4 accent-amber-700"> OpenAI (GPT-3.5)
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer font-crimson text-amber-800">
+                    <input type="checkbox" id="llm-anthropic" value="anthropic" class="w-4 h-4 accent-amber-700"> Anthropic (Claude)
+                </label>
+            </div>
+            <button id="run-btn" {% if not has_keys %}disabled{% endif %} 
+                    class="parchment-btn px-6 py-3 text-amber-50 font-cinzel disabled:opacity-50 disabled:cursor-not-allowed">
+                Run Benchmark
+            </button>
+            
+            <div id="loading" class="text-center py-5 hidden">
+                <div class="w-8 h-8 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin mx-auto"></div>
+                <p class="mt-2 text-amber-700 font-crimson italic">Running benchmark... This may take a few minutes.</p>
+            </div>
+            
+            <div id="results-container" class="mt-5"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('run-btn').addEventListener('click', async function() {
+            const selectedLlms = [];
+            if (document.getElementById('llm-openai').checked) selectedLlms.push('openai');
+            if (document.getElementById('llm-anthropic').checked) selectedLlms.push('anthropic');
+            
+            if (selectedLlms.length === 0) {
+                alert('Please select at least one LLM');
+                return;
+            }
+            
+            this.disabled = true;
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results-container').innerHTML = '';
+            
+            try {
+                const response = await fetch('/run-benchmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ llms: selectedLlms })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    displayResults(data.results, data.llms);
+                }
+            } catch (err) {
+                alert('Error running benchmark: ' + err.message);
+            } finally {
+                this.disabled = false;
+                document.getElementById('loading').classList.add('hidden');
+            }
+        });
+        
+        function displayResults(results, llms) {
+            const container = document.getElementById('results-container');
+            let html = '<h3 class="text-xl font-cinzel font-semibold mt-6 mb-4 text-amber-900">📖 Results</h3>';
+            
+            results.forEach((result, idx) => {
+                html += `<div class="bg-amber-50/50 p-4 mb-4 rounded-lg border border-amber-300">
+                    <div class="font-semibold text-amber-900 mb-3 font-crimson text-lg">${idx + 1}. ${result.question}</div>`;
+                
+                llms.forEach(llm => {
+                    if (result[llm]) {
+                        html += `<div class="ml-2 p-3 bg-amber-100/50 rounded mb-2 border-l-4 border-amber-600">
+                            <strong class="text-amber-800 font-cinzel">${llm.toUpperCase()}:</strong> <span class="font-crimson text-amber-700">${result[llm]}</span>
+                        </div>`;
+                    }
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
