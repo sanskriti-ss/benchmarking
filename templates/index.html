@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LLM Agreeability Benchmark</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -238,6 +239,10 @@
         .result-llm + .result-llm { border-top: 1px solid var(--divider); }
         .result-llm.openai { border-left-color: var(--accent); }
         .result-llm.anthropic { border-left-color: #c4883c; }
+        .result-llm.dedalus-gpt4o { border-left-color: #10a37f; }
+        .result-llm.dedalus-claude-sonnet { border-left-color: #d4a574; }
+        .result-llm.dedalus-gemini-flash { border-left-color: #4285f4; }
+        .result-llm.dedalus-grok3 { border-left-color: #1d9bf0; }
 
         /* Fade in */
         @keyframes fadeUp {
@@ -341,7 +346,7 @@
             <div class="section-label mb-1">Run Benchmark</div>
             <p class="text-sm mb-5" style="color:var(--ink-light);">Select models to evaluate:</p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6" style="max-width:440px;">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
                 <input type="checkbox" id="llm-openai" value="openai" class="llm-check">
                 <label for="llm-openai" class="llm-label">
                     <span class="llm-indicator">
@@ -365,6 +370,58 @@
                     <div>
                         <div class="text-sm font-medium" style="color:var(--ink);">Anthropic</div>
                         <div class="font-mono text-xs" style="color:var(--ink-faint);">Claude</div>
+                    </div>
+                </label>
+
+                <input type="checkbox" id="llm-dedalus-gpt4o" value="dedalus-gpt4o" class="llm-check">
+                <label for="llm-dedalus-gpt4o" class="llm-label">
+                    <span class="llm-indicator">
+                        <svg class="check-svg" width="10" height="10" viewBox="0 0 12 12" fill="none" style="opacity:0;">
+                            <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="text-sm font-medium" style="color:var(--ink);">GPT-4o</div>
+                        <div class="font-mono text-xs" style="color:var(--ink-faint);">via Dedalus</div>
+                    </div>
+                </label>
+
+                <input type="checkbox" id="llm-dedalus-claude-sonnet" value="dedalus-claude-sonnet" class="llm-check">
+                <label for="llm-dedalus-claude-sonnet" class="llm-label">
+                    <span class="llm-indicator">
+                        <svg class="check-svg" width="10" height="10" viewBox="0 0 12 12" fill="none" style="opacity:0;">
+                            <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="text-sm font-medium" style="color:var(--ink);">Claude Sonnet 4</div>
+                        <div class="font-mono text-xs" style="color:var(--ink-faint);">via Dedalus</div>
+                    </div>
+                </label>
+
+                <input type="checkbox" id="llm-dedalus-gemini-flash" value="dedalus-gemini-flash" class="llm-check">
+                <label for="llm-dedalus-gemini-flash" class="llm-label">
+                    <span class="llm-indicator">
+                        <svg class="check-svg" width="10" height="10" viewBox="0 0 12 12" fill="none" style="opacity:0;">
+                            <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="text-sm font-medium" style="color:var(--ink);">Gemini 2.5 Flash</div>
+                        <div class="font-mono text-xs" style="color:var(--ink-faint);">via Dedalus</div>
+                    </div>
+                </label>
+
+                <input type="checkbox" id="llm-dedalus-grok3" value="dedalus-grok3" class="llm-check">
+                <label for="llm-dedalus-grok3" class="llm-label">
+                    <span class="llm-indicator">
+                        <svg class="check-svg" width="10" height="10" viewBox="0 0 12 12" fill="none" style="opacity:0;">
+                            <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="text-sm font-medium" style="color:var(--ink);">Grok 3</div>
+                        <div class="font-mono text-xs" style="color:var(--ink-faint);">via Dedalus</div>
                     </div>
                 </label>
             </div>
@@ -394,8 +451,7 @@
 
         document.getElementById('run-btn').addEventListener('click', async function() {
             const selectedLlms = [];
-            if (document.getElementById('llm-openai').checked) selectedLlms.push('openai');
-            if (document.getElementById('llm-anthropic').checked) selectedLlms.push('anthropic');
+            document.querySelectorAll('.llm-check:checked').forEach(cb => selectedLlms.push(cb.value));
 
             if (selectedLlms.length === 0) {
                 alert('Please select at least one LLM');
@@ -412,13 +468,17 @@
                 const results = [];
 
                 // Send one question at a time, with delay for rate limits
-                const needsDelay = selectedLlms.includes('openai');
+                const hasOpenai = selectedLlms.includes('openai');
+                const hasDedalus = selectedLlms.some(l => l.startsWith('dedalus-'));
                 for (let i = 0; i < questions.length; i++) {
-                    if (needsDelay && i > 0) {
+                    if (hasOpenai && i > 0) {
                         for (let s = 21; s > 0; s--) {
                             statusEl.textContent = `Rate limit cooldown... ${s}s`;
                             await new Promise(r => setTimeout(r, 1000));
                         }
+                    } else if (hasDedalus && i > 0) {
+                        statusEl.textContent = `Rate limit cooldown...`;
+                        await new Promise(r => setTimeout(r, 1200));
                     }
                     statusEl.textContent = `Question ${i + 1} of ${questions.length}...`;
 
@@ -451,44 +511,124 @@
             }
         });
 
+        const MODEL_COLORS = {
+            'openai': '#10a37f',
+            'anthropic': '#d4a574',
+            'dedalus-gpt4o': '#10a37f',
+            'dedalus-claude-sonnet': '#d4a574',
+            'dedalus-gemini-flash': '#4285f4',
+            'dedalus-grok3': '#1d9bf0',
+        };
+
+        const MODEL_LABELS = {
+            'openai': 'OpenAI GPT-3.5',
+            'anthropic': 'Anthropic Claude',
+            'dedalus-gpt4o': 'GPT-4o',
+            'dedalus-claude-sonnet': 'Claude Sonnet 4',
+            'dedalus-gemini-flash': 'Gemini 2.5 Flash',
+            'dedalus-grok3': 'Grok 3',
+        };
+
+        let benchmarkChart = null;
+
         function displayResults(results, llms, scores) {
             const container = document.getElementById('results-container');
             let html = '';
 
-            // Agreeability scores
+            // Chart.js comparison bar chart
+            if (scores && Object.keys(scores).length > 1) {
+                html += `<div class="card p-6 mb-8" style="border-color:var(--accent-border);">
+                    <div class="section-label" style="color:var(--accent);">Model Comparison</div>
+                    <p class="text-xs font-mono mt-1 mb-4" style="color:var(--ink-faint);">
+                        z-score &middot; negative = sycophantic &middot; positive = corrective
+                    </p>
+                    <div style="position:relative; height:${Math.max(180, Object.keys(scores).length * 52)}px;">
+                        <canvas id="comparison-chart"></canvas>
+                    </div>
+                </div>`;
+            }
+
+            // Multi-dimensional scores per model
             if (scores && Object.keys(scores).length > 0) {
                 html += `<div class="card p-6 mb-8" style="border-color:var(--accent-border);">
-                    <div class="section-label" style="color:var(--accent);">Agreeability Scores</div>
+                    <div class="section-label" style="color:var(--accent);">Detailed Scores</div>
                     <p class="text-xs font-mono mt-1 mb-6" style="color:var(--ink-faint);">
-                        z-score &middot; 0 = avg human &middot; negative = more agreeable &middot; positive = more corrective
+                        Four dimensions &middot; sycophancy (z-score) &middot; factual accuracy &middot; placating &middot; epistemic transparency
                     </p>
                     <div class="space-y-6">`;
 
-                Object.entries(scores).forEach(([llm, scoreData]) => {
-                    // Support both {score, explanation} objects and plain numbers
-                    const scoreNum = typeof scoreData === 'object' ? parseFloat(scoreData.score) : parseFloat(scoreData);
-                    const explanation = typeof scoreData === 'object' ? scoreData.explanation : null;
-                    const clamped = Math.max(-3, Math.min(3, scoreNum));
-                    const pct = ((clamped + 3) / 6) * 100;
-                    const color = scoreNum < -0.5 ? '#c4883c' : scoreNum > 0.5 ? 'var(--accent)' : 'var(--ink-faint)';
+                Object.entries(scores).forEach(([llm, d]) => {
+                    // Support both new multi-dim format and legacy {score, explanation}
+                    const syc = parseFloat(d.sycophancy ?? d.score ?? 0);
+                    const factual = parseFloat(d.factual_accuracy ?? 0);
+                    const placating = parseFloat(d.placating ?? 0);
+                    const epistemic = parseFloat(d.epistemic_transparency ?? 0);
+                    const explanation = d.explanation || null;
 
-                    html += `<div style="padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--divider);">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="font-mono text-sm font-medium" style="color:var(--ink);">${llm.toUpperCase()}</span>
-                            <span class="font-mono text-sm font-semibold" style="color:${color};">${scoreNum.toFixed(2)}</span>
+                    const sycClamped = Math.max(-3, Math.min(3, syc));
+                    const sycPct = ((sycClamped + 3) / 6) * 100;
+                    const sycColor = syc < -0.5 ? '#c4883c' : syc > 0.5 ? 'var(--accent)' : 'var(--ink-faint)';
+
+                    function pctBar(val, max, lowColor, highColor) {
+                        const pct = Math.max(0, Math.min(100, (val / max) * 100));
+                        const color = val < 0.4 ? lowColor : val > 0.7 ? highColor : 'var(--ink-faint)';
+                        return { pct, color };
+                    }
+                    const fa = pctBar(factual, 1, '#c4883c', 'var(--accent)');
+                    const pl = pctBar(placating, 1, 'var(--accent)', '#c4883c');
+                    const ep = pctBar(epistemic, 1, '#c4883c', 'var(--accent)');
+
+                    html += `<div style="padding-bottom:20px; margin-bottom:20px; border-bottom:1px solid var(--divider);">
+                        <div class="font-mono text-sm font-medium mb-4" style="color:var(--ink);">${(MODEL_LABELS[llm] || llm).toUpperCase()}</div>
+
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-mono" style="font-size:11px;color:var(--ink-light);">Sycophancy</span>
+                                <span class="font-mono text-xs font-semibold" style="color:${sycColor};">${syc.toFixed(2)}</span>
+                            </div>
+                            <div class="score-gauge">
+                                <div class="score-marker" style="left:${sycPct}%;background:${sycColor};"></div>
+                            </div>
+                            <div class="flex justify-between mt-1">
+                                <span class="font-mono" style="font-size:9px;color:var(--ink-faint);">Sycophantic</span>
+                                <span class="font-mono" style="font-size:9px;color:var(--ink-faint);">Corrective</span>
+                            </div>
                         </div>
-                        <div class="score-gauge">
-                            <div class="score-marker" style="left:${pct}%;background:${color};"></div>
+
+                        <div class="grid grid-cols-3 gap-3 mt-3">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="font-mono" style="font-size:10px;color:var(--ink-light);">Factual</span>
+                                    <span class="font-mono" style="font-size:10px;font-weight:600;color:${fa.color};">${factual.toFixed(2)}</span>
+                                </div>
+                                <div style="height:4px;background:var(--divider);border-radius:2px;overflow:hidden;">
+                                    <div style="width:${fa.pct}%;height:100%;background:${fa.color};border-radius:2px;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="font-mono" style="font-size:10px;color:var(--ink-light);">Placating</span>
+                                    <span class="font-mono" style="font-size:10px;font-weight:600;color:${pl.color};">${placating.toFixed(2)}</span>
+                                </div>
+                                <div style="height:4px;background:var(--divider);border-radius:2px;overflow:hidden;">
+                                    <div style="width:${pl.pct}%;height:100%;background:${pl.color};border-radius:2px;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="font-mono" style="font-size:10px;color:var(--ink-light);">Epistemic</span>
+                                    <span class="font-mono" style="font-size:10px;font-weight:600;color:${ep.color};">${epistemic.toFixed(2)}</span>
+                                </div>
+                                <div style="height:4px;background:var(--divider);border-radius:2px;overflow:hidden;">
+                                    <div style="width:${ep.pct}%;height:100%;background:${ep.color};border-radius:2px;"></div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex justify-between mt-1.5">
-                            <span class="font-mono" style="font-size:9px;color:var(--ink-faint);">Agreeable</span>
-                            <span class="font-mono" style="font-size:9px;color:var(--ink-faint);">Corrective</span>
-                        </div>
-                        ${explanation ? `<p style="margin-top:10px; font-size:13px; line-height:1.65; color:var(--ink-light); font-style:italic;">${explanation}</p>` : ''}
+
+                        ${explanation ? `<p style="margin-top:12px; font-size:13px; line-height:1.65; color:var(--ink-light); font-style:italic;">${explanation}</p>` : ''}
                     </div>`;
                 });
 
-                // Remove trailing border from last item
                 html += `<style>.card div[style*="border-bottom"]:last-child { border-bottom: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }</style>`;
 
                 html += `</div></div>`;
@@ -516,6 +656,75 @@
             });
 
             container.innerHTML = html;
+
+            // Render Chart.js horizontal bar chart if we have multiple scores
+            if (scores && Object.keys(scores).length > 1) {
+                const canvas = document.getElementById('comparison-chart');
+                if (canvas) {
+                    if (benchmarkChart) benchmarkChart.destroy();
+
+                    const labels = [];
+                    const data = [];
+                    const bgColors = [];
+
+                    Object.entries(scores).forEach(([llm, d]) => {
+                        const scoreNum = parseFloat(d.sycophancy ?? d.score ?? 0);
+                        labels.push(MODEL_LABELS[llm] || llm);
+                        data.push(scoreNum);
+                        bgColors.push(scoreNum < 0 ? '#c4883c' : '#2a6b5e');
+                    });
+
+                    benchmarkChart = new Chart(canvas.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: bgColors,
+                                borderRadius: 4,
+                                barThickness: 28,
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: ctx => `z-score: ${ctx.raw.toFixed(2)}`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    min: -3,
+                                    max: 3,
+                                    grid: { color: 'rgba(44,36,23,0.06)' },
+                                    ticks: {
+                                        font: { family: "'JetBrains Mono', monospace", size: 10 },
+                                        color: '#9c9488'
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: '\u2190 Sycophantic          Corrective \u2192',
+                                        font: { family: "'JetBrains Mono', monospace", size: 10 },
+                                        color: '#9c9488'
+                                    }
+                                },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        font: { family: "'Source Sans 3', sans-serif", size: 13, weight: 500 },
+                                        color: '#2c2417'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
         }
     </script>
 </body>
