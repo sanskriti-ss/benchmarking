@@ -1,6 +1,7 @@
 import os
 import uuid
 import requests
+import time
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
@@ -53,7 +54,19 @@ def call_openai(prompt: str, api_key: str) -> str:
             "max_tokens": 500
         }
         response = requests.post(url, headers=headers, json=data, timeout=30)
-        return response.json()["choices"][0]["message"]["content"]
+        result = response.json()
+        
+        # Check for API error
+        if "error" in result:
+            return f"Error: {result['error'].get('message', str(result['error']))}"
+        
+        # Check for choices in response
+        if "choices" not in result or not result["choices"]:
+            return f"Error: Unexpected response - {result}"
+        
+        return result["choices"][0]["message"]["content"]
+    except KeyError as e:
+        return f"Error: Missing key {str(e)} in response"
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -72,7 +85,18 @@ def call_anthropic(prompt: str, api_key: str) -> str:
         }
         response = requests.post(url, headers=headers, json=data, timeout=30)
         result = response.json()
+        
+        # Check for API error
+        if "error" in result:
+            return f"Error: {result['error'].get('message', str(result['error']))}"
+        
+        # Check for content in response
+        if "content" not in result or not result["content"]:
+            return f"Error: Unexpected response format - {result}"
+        
         return result["content"][0]["text"]
+    except KeyError as e:
+        return f"Error: Missing key {str(e)} in response"
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -198,13 +222,17 @@ def run_benchmark():
         return jsonify({"error": f"Missing API keys for: {', '.join(missing_keys)}"}), 400
     
     results = []
-    for q in questions:
+    for idx, q in enumerate(questions):
         row = {"question": q}
         for llm in selected_llms:
             if llm in LLM_FUNCTIONS and llm in api_keys:
                 decrypted_key = decrypt_key(api_keys[llm])
                 row[llm] = LLM_FUNCTIONS[llm](q, decrypted_key)
         results.append(row)
+        
+        # Add delay between questions to respect rate limits (except after last question)
+        if idx < len(questions) - 1:
+            time.sleep(21)  # Wait 21 seconds between questions for OpenAI free tier (3 RPM limit)
     
     return jsonify({"results": results, "llms": selected_llms})
 
