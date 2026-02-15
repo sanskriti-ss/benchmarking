@@ -65,30 +65,42 @@ def decrypt_key(encrypted_key: str) -> str:
 
 # ===== LLM Call Functions =====
 def call_openai(prompt: str, api_key: str) -> str:
-    try:
-        url = "https://api.openai.com/v1/chat/completions"
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-        data = {
-            "model": "gpt-3.5-turbo",
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 500
-        }
-        response = requests.post(url, headers=headers, json=data, timeout=30)
-        result = response.json()
-        
-        # Check for API error
-        if "error" in result:
-            return f"Error: {result['error'].get('message', str(result['error']))}"
-        
-        # Check for choices in response
-        if "choices" not in result or not result["choices"]:
-            return f"Error: Unexpected response - {result}"
-        
-        return result["choices"][0]["message"]["content"]
-    except KeyError as e:
-        return f"Error: Missing key {str(e)} in response"
-    except Exception as e:
-        return f"Error: {str(e)}"
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    data = {
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 500
+    }
+    tries = 0
+    while tries < 3:
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            result = response.json()
+
+            # Check for rate limit or API error
+            if "error" in result:
+                msg = result['error'].get('message', str(result['error']))
+                if 'rate limit' in msg.lower() or response.status_code == 429:
+                    tries += 1
+                    if tries < 3:
+                        time.sleep(25)
+                        continue
+                return f"Error: {msg}"
+
+            if "choices" not in result or not result["choices"]:
+                return f"Error: Unexpected response - {result}"
+
+            return result["choices"][0]["message"]["content"]
+        except KeyError as e:
+            return f"Error: Missing key {str(e)} in response"
+        except Exception as e:
+            if 'rate limit' in str(e).lower():
+                tries += 1
+                if tries < 3:
+                    time.sleep(25)
+                    continue
+            return f"Error: {str(e)}"
 
 def call_anthropic(prompt: str, api_key: str) -> str:
     url = "https://api.anthropic.com/v1/messages"
