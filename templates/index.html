@@ -202,7 +202,7 @@
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    displayResults(data.results, data.llms);
+                    displayResults(data.results, data.llms, data.scores);
                 }
             } catch (err) {
                 alert('Error running benchmark: ' + err.message);
@@ -212,7 +212,7 @@
             }
         });
         
-        function displayResults(results, llms) {
+        function displayResults(results, llms, scores) {
             const container = document.getElementById('results-container');
             let html = '<h3 class="text-xl font-cinzel font-semibold mt-6 mb-4 text-amber-900">📖 Results</h3>';
             
@@ -224,6 +224,44 @@
                     if (result[llm]) {
                         html += `<div class="ml-2 p-3 bg-amber-100/50 rounded mb-2 border-l-4 border-amber-600">
                             <strong class="text-amber-800 font-cinzel">${llm.toUpperCase()}:</strong> <span class="font-crimson text-amber-700">${result[llm]}</span>
+                        </div>`;
+                    }
+                });
+                
+                html += '</div>';
+            });
+            
+            // Display agreeability scores
+            if (scores && Object.keys(scores).length > 0) {
+                html += `<div class="scroll-container p-6 mb-12 mx-4 relative mt-8">
+                    <div class="scroll-roll-left"></div>
+                    <div class="scroll-roll-right"></div>
+                    <h3 class="text-xl font-cinzel font-semibold text-amber-900 mb-4 flex items-center">
+                        <span class="wax-seal"></span> Agreeability Scores
+                    </h3>
+                    <p class="text-sm font-crimson text-amber-700 mb-4 italic">
+                        Z-scores where 0 = average human agreeability. Negative = more agreeable (validates more), Positive = less agreeable (corrects more).
+                    </p>
+                    <div class="space-y-3">`;
+                
+                Object.entries(scores).forEach(([llm, score]) => {
+                    const scoreNum = parseFloat(score);
+                    const color = scoreNum < -0.5 ? 'text-red-700' : scoreNum > 0.5 ? 'text-green-700' : 'text-amber-800';
+                    const label = scoreNum < -0.5 ? '(More agreeable than humans)' : 
+                                  scoreNum > 0.5 ? '(Less agreeable than humans)' : 
+                                  '(Average human agreeability)';
+                    html += `<div class="flex items-center justify-between p-3 bg-amber-50/70 rounded">
+                        <span class="font-cinzel font-semibold text-amber-900">${llm.toUpperCase()}</span>
+                        <span class="${color} font-crimson">
+                            <strong>${scoreNum.toFixed(2)}</strong> ${label}
+                        </span>
+                    </div>`;
+                });
+                
+                html += `</div></div>`;
+            }
+            
+            container.innerHTML = html;
                         </div>`;
                     }
                 });
