@@ -72,34 +72,44 @@ def call_openai(prompt: str, api_key: str) -> str:
         return f"Error: {str(e)}"
 
 def call_anthropic(prompt: str, api_key: str) -> str:
-    try:
-        url = "https://api.anthropic.com/v1/messages"
-        headers = {
-            "x-api-key": api_key,
-            "Content-Type": "application/json; charset=utf-8",
-            "anthropic-version": "2023-06-01"
-        }
-        data = {
-            "model": "claude-3-haiku-20240307",
-            "max_tokens": 500,
-            "messages": [{"role": "user", "content": prompt}]
-        }
-        response = requests.post(url, headers=headers, json=data, timeout=30)
-        result = response.json()
-        
-        # Check for API error
-        if "error" in result:
-            return f"Error: {result['error'].get('message', str(result['error']))}"
-        
-        # Check for content in response
-        if "content" not in result or not result["content"]:
-            return f"Error: Unexpected response format - {result}"
-        
-        return result["content"][0]["text"]
-    except KeyError as e:
-        return f"Error: Missing key {str(e)} in response"
-    except Exception as e:
-        return f"Error: {str(e)}"
+    url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "x-api-key": api_key,
+        "Content-Type": "application/json; charset=utf-8",
+        "anthropic-version": "2023-06-01"
+    }
+    data = {
+        "model": "claude-3-haiku-20240307",
+        "max_tokens": 500,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    tries = 0
+    while tries < 3:
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            result = response.json()
+            # Check for API error
+            if "error" in result:
+                msg = result['error'].get('message', str(result['error']))
+                if 'overload' in msg.lower() or 'overloaded' in msg.lower():
+                    tries += 1
+                    if tries < 3:
+                        time.sleep(10)
+                        continue
+                return f"Error: {msg}"
+            # Check for content in response
+            if "content" not in result or not result["content"]:
+                return f"Error: Unexpected response format - {result}"
+            return result["content"][0]["text"]
+        except KeyError as e:
+            return f"Error: Missing key {str(e)} in response"
+        except Exception as e:
+            if 'overload' in str(e).lower() or 'overloaded' in str(e).lower():
+                tries += 1
+                if tries < 3:
+                    time.sleep(10)
+                    continue
+            return f"Error: {str(e)}"
 
 def score_agreeability(responses: list, api_key: str) -> dict:
     """Score LLM responses for agreeability using Claude. Returns z-scores where 0 = average human."""
@@ -130,24 +140,28 @@ Responses to analyze:
             "anthropic-version": "2023-06-01"
         }
         data = {
-            "model": "claude-3-5-sonnet-20241022",
+            "model": "claude-3-haiku-20240307",
             "max_tokens": 200,
             "messages": [{"role": "user", "content": prompt}]
         }
         response = requests.post(url, headers=headers, json=data, timeout=30)
         result = response.json()
-        
+        print("[DEBUG] Claude scoring API raw result:", result)
         if "error" in result or "content" not in result:
+            print("[DEBUG] Claude scoring error or missing content.")
             return {}
-        
         # Extract JSON from response
         import json
         import re
         text = result["content"][0]["text"]
+        print("[DEBUG] Claude scoring text:", text)
         # Try to find JSON in the response
         json_match = re.search(r'\{[^}]+\}', text)
         if json_match:
-            return json.loads(json_match.group())
+            scores = json.loads(json_match.group())
+            print("[DEBUG] Extracted scores:", scores)
+            return scores
+        print("[DEBUG] No JSON found in Claude scoring response.")
         return {}
     except Exception as e:
         print(f"Scoring error: {e}")
@@ -172,7 +186,15 @@ def get_user_data(user_id: str):
             users_collection.insert_one(user)
     else:
         if user_id not in _local_users:
-            _local_users[user_id] = {"user_id": user_id, "api_keys": {}}
+            # Try to load from environment variables
+            api_keys = {}
+            openai_env = os.getenv("OPENAI_API_KEY", "").strip()
+            anthropic_env = os.getenv("ANTHROPIC_API_KEY", "").strip()
+            if openai_env:
+                api_keys["openai"] = encrypt_key(openai_env)
+            if anthropic_env:
+                api_keys["anthropic"] = encrypt_key(anthropic_env)
+            _local_users[user_id] = {"user_id": user_id, "api_keys": api_keys}
         user = _local_users[user_id]
     return user
 
