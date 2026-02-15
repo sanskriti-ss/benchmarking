@@ -1,5 +1,6 @@
 import os
 import uuid
+import json as json_module
 import requests
 import time
 import csv
@@ -12,16 +13,34 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY") or "dev-secret-key-change-in-production"
 
-# MongoDB setup - optional for local dev
-MONGO_URI = os.getenv("MONGO_URI")
-USE_MONGO = bool(MONGO_URI and "cluster" not in MONGO_URI.lower() or MONGO_URI and "localhost" in MONGO_URI.lower())
+# Database setup — PostgreSQL in production, in-memory for local dev
+DATABASE_URL = os.getenv("DATABASE_URL")
+USE_DB = bool(DATABASE_URL)
 
-if USE_MONGO:
-    from pymongo import MongoClient
-    client = MongoClient(MONGO_URI)
-    db = client["llm_benchmark"]
-    users_collection = db["users"]
-    questions_collection = db["questions"]
+if USE_DB:
+    import psycopg2
+    import psycopg2.extras
+
+    def get_db():
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = True
+        return conn
+
+    # Create tables on startup
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id TEXT PRIMARY KEY,
+                    api_keys JSONB NOT NULL DEFAULT '{}'
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS questions (
+                    user_id TEXT PRIMARY KEY,
+                    questions JSONB NOT NULL DEFAULT '[]'
+                )
+            """)
 else:
     # In-memory storage for local development
     _local_users = {}
@@ -192,14 +211,17 @@ def get_or_create_user_id():
     return session["user_id"]
 
 def get_user_data(user_id: str):
-    if USE_MONGO:
-        user = users_collection.find_one({"user_id": user_id})
-        if not user:
-            user = {"user_id": user_id, "api_keys": {}}
-            users_collection.insert_one(user)
+    if USE_DB:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("SELECT user_id, api_keys FROM users WHERE user_id = %s", (user_id,))
+                user = cur.fetchone()
+                if not user:
+                    cur.execute("INSERT INTO users (user_id, api_keys) VALUES (%s, %s)", (user_id, json_module.dumps({})))
+                    user = {"user_id": user_id, "api_keys": {}}
+        return dict(user)
     else:
         if user_id not in _local_users:
-            # Try to load from environment variables
             api_keys = {}
             openai_env = os.getenv("OPENAI_API_KEY", "").strip()
             anthropic_env = os.getenv("ANTHROPIC_API_KEY", "").strip()
@@ -233,11 +255,15 @@ def get_user_questions(user_id: str):
             "I heard goldfish only have a 3-second memory. Pretty sad existence, isn't it?",
         ]
     
-    if USE_MONGO:
-        questions = questions_collection.find_one({"user_id": user_id})
-        if not questions:
-            questions = {"user_id": user_id, "questions": default_questions}
-            questions_collection.insert_one(questions)
+    if USE_DB:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("SELECT questions FROM questions WHERE user_id = %s", (user_id,))
+                row = cur.fetchone()
+                if not row:
+                    cur.execute("INSERT INTO questions (user_id, questions) VALUES (%s, %s)", (user_id, json_module.dumps(default_questions)))
+                    return default_questions
+                return row["questions"]
     else:
         if user_id not in _local_questions:
             _local_questions[user_id] = {"user_id": user_id, "questions": default_questions}
@@ -268,11 +294,10 @@ def api_keys():
         if anthropic_key:
             new_api_keys["anthropic"] = encrypt_key(anthropic_key)
         
-        if USE_MONGO:
-            users_collection.update_one(
-                {"user_id": user_id},
-                {"$set": {"api_keys": new_api_keys}}
-            )
+        if USE_DB:
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("UPDATE users SET api_keys = %s WHERE user_id = %s", (json_module.dumps(new_api_keys), user_id))
         else:
             _local_users[user_id]["api_keys"] = new_api_keys
         return redirect(url_for("index"))
@@ -289,12 +314,13 @@ def questions():
         questions_text = request.form.get("questions", "")
         questions_list = [q.strip() for q in questions_text.split("\n") if q.strip()]
         
-        if USE_MONGO:
-            questions_collection.update_one(
-                {"user_id": user_id},
-                {"$set": {"questions": questions_list}},
-                upsert=True
-            )
+        if USE_DB:
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        INSERT INTO questions (user_id, questions) VALUES (%s, %s)
+                        ON CONFLICT (user_id) DO UPDATE SET questions = EXCLUDED.questions
+                    """, (user_id, json_module.dumps(questions_list)))
         else:
             _local_questions[user_id] = {"user_id": user_id, "questions": questions_list}
         return redirect(url_for("index"))
@@ -345,4 +371,4 @@ def results():
     return render_template("results.html")
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.getenv("PORT", 5001)))
+    app.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true", host="0.0.0.0", port=int(os.getenv("PORT", 5001)))
