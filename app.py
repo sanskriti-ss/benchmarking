@@ -76,7 +76,7 @@ def call_anthropic(prompt: str, api_key: str) -> str:
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": api_key,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
             "anthropic-version": "2023-06-01"
         }
         data = {
@@ -126,7 +126,7 @@ Responses to analyze:
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": api_key,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
             "anthropic-version": "2023-06-01"
         }
         data = {
