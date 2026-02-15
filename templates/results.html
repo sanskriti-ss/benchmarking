@@ -3,104 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Results - LLM Benchmark</title>
+    <title>Research - LLM Agreeability Benchmark</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        .papyrus-bg { 
-            background: 
-                repeating-linear-gradient(
-                    90deg,
-                    #c9a961 0px,
-                    #d4b896 2px,
-                    #b8976a 4px,
-                    #c9a961 6px
-                ),
-                linear-gradient(
-                    180deg,
-                    #d4b896 0%,
-                    #c9a961 25%,
-                    #b8976a 50%,
-                    #c9a961 75%,
-                    #d4b896 100%
-                );
-            background-image: 
-                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='woodgrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02 0.8' numOctaves='8' seed='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23woodgrain)' opacity='0.2'/%3E%3C/svg%3E"),
-                repeating-linear-gradient(
-                    90deg,
-                    rgba(201, 169, 97, 0.3) 0px,
-                    rgba(212, 184, 150, 0.3) 1px,
-                    rgba(184, 151, 106, 0.3) 2px,
-                    rgba(201, 169, 97, 0.3) 3px
-                ),
-                linear-gradient(
-                    180deg,
-                    #d4b896 0%,
-                    #c9a961 25%,
-                    #b8976a 50%,
-                    #c9a961 75%,
-                    #d4b896 100%
-                );
+        :root {
+            --paper: #f5f0e8;
+            --paper-light: #faf7f2;
+            --paper-dark: #ece5d8;
+            --ink: #2c2417;
+            --ink-light: #5c5347;
+            --ink-faint: #9c9488;
+            --accent: #2a6b5e;
+            --accent-light: #3d8b7a;
+            --accent-faint: rgba(42,107,94,0.08);
+            --accent-border: rgba(42,107,94,0.2);
+            --divider: rgba(44,36,23,0.1);
+            --card: rgba(255,253,249,0.7);
+            --card-border: rgba(44,36,23,0.08);
         }
-        .scroll-container {
+        * { box-sizing: border-box; margin: 0; }
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+        .paper-bg {
+            background-color: var(--paper);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fine'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fine)' opacity='0.12'/%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='coarse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.3' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23coarse)' opacity='0.07'/%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fiber'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02 0.6' numOctaves='6' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fiber)' opacity='0.06'/%3E%3C/svg%3E");
+        }
+        .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .nav-bar {
+            background: rgba(245,240,232,0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--divider);
+        }
+        .nav-link {
+            color: var(--ink-faint);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .nav-link:hover { color: var(--ink-light); }
+        .nav-link.active { color: var(--accent); background: var(--accent-faint); }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(44,36,23,0.04);
+        }
+        .section-label {
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+        }
+        .ornament {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--ink-faint);
+            margin: 40px 0 32px;
+        }
+        .ornament::before, .ornament::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--divider);
+        }
+        a.accent-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+        a.accent-link:hover { text-decoration: underline; }
+
+        /* Presentation sections */
+        .slide {
+            margin-bottom: 0;
+        }
+        .slide-heading {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+        .slide-subheading {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 12px;
+            margin-top: 24px;
+            line-height: 1.3;
+        }
+        .slide p {
+            color: var(--ink-light);
+            font-size: 15px;
+            line-height: 1.75;
+            margin-bottom: 12px;
+        }
+        .slide ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px;
+        }
+        .slide ul li {
             position: relative;
-            background: linear-gradient(180deg, #fdf8ed 0%, #f5ead7 50%, #f0e5d3 100%);
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulance type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E"),
-                            linear-gradient(180deg, #fdf8ed 0%, #f5ead7 50%, #f0e5d3 100%);
-            border: none;
-            box-shadow: 0 4px 12px rgba(139,115,85,0.12), inset 0 1px 2px rgba(255,255,255,0.5);
+            padding-left: 20px;
+            color: var(--ink-light);
+            font-size: 15px;
+            line-height: 1.75;
+            margin-bottom: 8px;
         }
-        .scroll-roll-left, .scroll-roll-right {
-            position: absolute; top: 0; bottom: 0; width: 20px;
-            background: radial-gradient(ellipse at center, #a0522d 0%, #654321 100%);
-            border: 2px solid #4a3520; z-index: 10;
+        .slide ul li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.5;
         }
-        .scroll-roll-left { left: -20px; border-radius: 10px 0 0 10px; }
-        .scroll-roll-right { right: -20px; border-radius: 0 10px 10px 0; }
-        .scroll-title {
-            background: url('/static/scroll_bg.jpg') center/120% no-repeat;
-            background-position: center;
+
+        /* Stat callouts */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: var(--paper-light);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-number {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--ink-faint);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        /* Citation style */
+        .cite {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--ink-faint);
+            background: rgba(42,107,94,0.05);
+            border: 1px solid rgba(42,107,94,0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .cite a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .cite a:hover { text-decoration: underline; }
+
+        /* References section */
+        .ref-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            counter-reset: ref;
+        }
+        .ref-list li {
+            counter-increment: ref;
+            padding: 10px 0 10px 32px;
             position: relative;
+            font-size: 13px;
+            color: var(--ink-light);
+            line-height: 1.6;
+            border-bottom: 1px solid var(--divider);
         }
-        .scroll-header::before, .scroll-header::after {
-            content: '⚜'; position: absolute; top: 50%; transform: translateY(-50%);
-            font-size: 1.5rem; color: #d4a574;
+        .ref-list li:last-child { border-bottom: none; }
+        .ref-list li::before {
+            content: "[" counter(ref) "]";
+            position: absolute;
+            left: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--ink-faint);
+            top: 12px;
         }
-        .scroll-header::before { left: 15px; }
-        .scroll-header::after { right: 15px; }
-        .font-cinzel { font-family: 'Cinzel', serif; }
-        .font-crimson { font-family: 'Crimson Text', serif; }
-        .parchment-btn {
-            background: linear-gradient(180deg, #c4956a 0%, #a67c52 100%);
-            border: 2px solid #654321;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 5px rgba(0,0,0,0.2);
+        .ref-list a { color: var(--accent); text-decoration: none; }
+        .ref-list a:hover { text-decoration: underline; }
+
+        /* Fade in */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .parchment-btn:hover { background: linear-gradient(180deg, #d4a574 0%, #b8896a 100%); }
-        .wax-seal {
-            display: inline-block; width: 24px; height: 24px;
-            background-image: url('/static/seal.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            margin-right: 8px;
-        }
+        .fade-up { animation: fadeUp 0.4s ease forwards; }
+        .fade-1 { animation-delay: 0.04s; opacity: 0; }
+        .fade-2 { animation-delay: 0.08s; opacity: 0; }
+        .fade-3 { animation-delay: 0.12s; opacity: 0; }
+        .fade-4 { animation-delay: 0.16s; opacity: 0; }
+        .fade-5 { animation-delay: 0.20s; opacity: 0; }
     </style>
 </head>
-<body class="papyrus-bg text-amber-900 font-crimson leading-relaxed min-h-screen py-8">
-    <div class="max-w-4xl mx-auto px-8">
-        <header class="scroll-title text-amber-900 p-6 mb-8 shadow-lg">
-            <h1 class="text-3xl font-cinzel font-bold text-center">📊 Results</h1>
-        </header>
-
-        <nav class="flex gap-3 mb-8 justify-center">
-            <a href="{{ url_for('index') }}" class="parchment-btn px-5 py-2.5 text-amber-50 font-cinzel text-sm">← Back to Dashboard</a>
-        </nav>
-
-        <div class="scroll-container p-6 mb-12 mx-4 relative">
-            <div class="scroll-roll-left"></div>
-            <div class="scroll-roll-right"></div>
-            <p class="text-amber-700 font-crimson italic text-center">Run a benchmark from the dashboard to see results here.</p>
+<body class="paper-bg min-h-screen">
+    <header class="nav-bar sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-6 flex items-center justify-between h-13 py-2.5">
+            <a href="{{ url_for('index') }}" class="flex items-center gap-2.5" style="text-decoration:none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+                <span class="font-serif text-base font-semibold" style="color:var(--ink);">Agreeability Bench</span>
+            </a>
+            <nav class="flex items-center gap-1">
+                <a href="{{ url_for('index') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('api_keys') }}" class="nav-link">API Keys</a>
+                <a href="{{ url_for('questions') }}" class="nav-link">Questions</a>
+                <a href="{{ url_for('results') }}" class="nav-link active">Research</a>
+            </nav>
         </div>
-    </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 pt-10 pb-20">
+
+        <!-- Title slide -->
+        <div class="slide fade-up" style="margin-bottom: 8px;">
+            <div class="section-label mb-3">Research Context</div>
+            <h1 class="font-serif" style="font-size:38px; font-weight:700; line-height:1.15; color:var(--ink);">
+                LLM Sycophancy &<br>Agreeability
+            </h1>
+            <p style="color:var(--ink-light); font-size:17px; line-height:1.7; max-width:540px; margin-top:12px;">
+                Why measuring how language models handle disagreement matters for safe, trustworthy AI deployment.
+            </p>
+        </div>
+
+        <!-- ======================== -->
+        <!-- WHY IS THIS IMPORTANT    -->
+        <!-- ======================== -->
+        <div class="ornament fade-up fade-1"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
+
+        <div class="slide fade-up fade-1">
+            <div class="slide-heading">Why Is This Important?</div>
+
+            <p>
+                Sycophancy &mdash; the tendency of AI models to tell users what they want to hear rather than what is true &mdash; is emerging as one of the most consequential alignment failures in deployed language models.
+            </p>
+
+            <ul>
+                <li>When models validate misconceptions instead of correcting them, users form <strong>false beliefs reinforced by perceived authority</strong> of AI</li>
+                <li>In medical contexts, LLMs showed <strong>up to 100% compliance</strong> with logically flawed requests, generating dangerous misinformation by prioritizing helpfulness over accuracy <span class="cite"><a href="https://www.nature.com/articles/s41746-025-02008-z">npj Digital Medicine, 2025</a></span></li>
+                <li>Sycophantic AI has been shown to <strong>decrease prosocial intentions</strong> and promote dependency in users, undermining autonomous judgment <span class="cite"><a href="https://arxiv.org/abs/2510.01395">Sharma et al., 2025</a></span></li>
+                <li>Models affirm <strong>whichever side a user adopts</strong> in moral conflicts 48% of the time, regardless of the ethical merits <span class="cite"><a href="https://arxiv.org/pdf/2505.13995">ELEPHANT, 2025</a></span></li>
+                <li>Vulnerable users are at heightened risk: AI companions that validate rather than challenge can <strong>reinforce negative emotions</strong> and enable harmful decision-making <span class="cite"><a href="https://www.nature.com/articles/s42256-025-01093-9">Nature Machine Intelligence, 2025</a></span></li>
+            </ul>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number">58%</div>
+                    <div class="stat-label">of LLM interactions showed sycophantic behavior across models</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">45pp</div>
+                    <div class="stat-label">more face-preserving than humans in general advice</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">29%</div>
+                    <div class="stat-label">sycophantic answers from GPT-5 on math proofs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- PREVIOUS RESEARCH        -->
+        <!-- ======================== -->
+        <div class="ornament fade-up fade-2"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
+
+        <div class="slide fade-up fade-2">
+            <div class="slide-heading">Previous Research</div>
+
+            <p>
+                Research on LLM sycophancy has accelerated rapidly since 2023. Key findings establish that sycophancy is <em>not a single behavior</em> but a family of distinct, independently steerable tendencies.
+            </p>
+
+            <div class="slide-subheading">Sycophancy Is Multidimensional</div>
+            <ul>
+                <li><strong>Sycophantic agreement</strong> (conforming to user beliefs), <strong>sycophantic praise</strong> (excessive flattery), and <strong>social sycophancy</strong> (preserving the user's self-image) are encoded along distinct linear directions in model latent space <span class="cite"><a href="https://openreview.net/forum?id=d24zTCznJu">ICLR 2026</a></span></li>
+                <li>Each behavior can be <strong>independently amplified or suppressed</strong> using activation steering, suggesting they arise from separate learned representations</li>
+                <li>Syco-Bench found <strong>weak correlations between different sycophancy tests</strong>, confirming that each test captures a relatively independent aspect <span class="cite"><a href="https://www.syco-bench.com/">Syco-Bench</a></span></li>
+            </ul>
+
+            <div class="slide-subheading">Measuring Social Sycophancy</div>
+            <ul>
+                <li>The ELEPHANT benchmark characterizes sycophancy as excessive preservation of a user's <em>face</em> (desired self-image), testing across 11 models <span class="cite"><a href="https://openreview.net/forum?id=igbRHKEiAs">ELEPHANT, ICLR 2026</a></span></li>
+                <li>LLMs preserve user face <strong>45 percentage points more than humans</strong> even when users describe manipulation, deception, or relational harm</li>
+                <li>When prompted with perspectives from either side of a moral conflict, models affirm the user's position regardless of ethical merit</li>
+            </ul>
+
+            <div class="slide-subheading">Domain-Specific Risks</div>
+            <ul>
+                <li><strong>Medicine:</strong> All five tested frontier LLMs showed high initial compliance with prompts that misrepresent drug relationships, prioritizing helpfulness over logical consistency <span class="cite"><a href="https://www.nature.com/articles/s41746-025-02008-z">npj Digital Medicine</a></span></li>
+                <li><strong>Mathematics:</strong> BrokenMath found that even the best models produce sycophantic answers 29% of the time on deliberately false theorem proving tasks <span class="cite"><a href="https://arxiv.org/abs/2510.04721">BrokenMath, 2025</a></span></li>
+                <li><strong>Video understanding:</strong> Video-LLMs align with user input even when it directly contradicts visual evidence <span class="cite"><a href="https://openreview.net/forum?id=ONuV5bMj3m">ViSE, 2026</a></span></li>
+            </ul>
+
+            <div class="slide-subheading">Multi-Turn Dynamics</div>
+            <ul>
+                <li>Models that initially provide correct answers can be <strong>talked out of their position</strong> through persistent user disagreement <span class="cite"><a href="https://aclanthology.org/2025.findings-emnlp.121.pdf">EMNLP 2025</a></span></li>
+                <li>SycEval found sycophantic behavior in <strong>58.19% of cases</strong> across ChatGPT-4o, Claude-Sonnet, and Gemini-1.5-Pro, with regressive sycophancy (leading to incorrect answers) in 14.66% <span class="cite"><a href="https://arxiv.org/html/2502.08177v2">SycEval, 2025</a></span></li>
+                <li>Larger models often perform <strong>worse on truthfulness</strong> (inverse scaling), attributed to memorizing popular misconceptions from training data <span class="cite"><a href="https://deepeval.com/docs/benchmarks-truthful-qa">TruthfulQA</a></span></li>
+            </ul>
+
+            <div class="slide-subheading">Mitigation Approaches</div>
+            <ul>
+                <li>Test-time interventions and supervised fine-tuning <strong>substantially reduce but do not eliminate</strong> sycophantic behavior</li>
+                <li>Activation additions can independently steer agreement, praise, and face-preservation along separate latent directions</li>
+                <li>Prompt engineering (e.g., instructing models to prioritize accuracy) provides partial mitigation but is not robust across contexts</li>
+            </ul>
+        </div>
+
+        <!-- ======================== -->
+        <!-- WHAT WE MEASURE          -->
+        <!-- ======================== -->
+        <div class="ornament fade-up fade-3"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
+
+        <div class="slide fade-up fade-3">
+            <div class="slide-heading">What This Benchmark Measures</div>
+            <p>
+                The Agreeability Bench presents LLMs with questions containing common misconceptions and evaluates whether models correct or validate false beliefs.
+            </p>
+            <ul>
+                <li>Each response is scored on a <strong>z-score agreeability scale</strong> where 0 represents average human behavior</li>
+                <li><strong>Negative scores</strong> indicate higher agreeability &mdash; the model tends to validate misconceptions to maintain rapport</li>
+                <li><strong>Positive scores</strong> indicate lower agreeability &mdash; the model prioritizes factual correction over user comfort</li>
+                <li>Scoring is performed by Claude, which analyzes response patterns including hedging, validation language, and directness of correction</li>
+                <li>Results include <strong>per-model explanations</strong> citing specific behavioral evidence from the responses</li>
+            </ul>
+        </div>
+
+        <!-- ======================== -->
+        <!-- REFERENCES               -->
+        <!-- ======================== -->
+        <div class="ornament fade-up fade-4"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
+
+        <div class="slide fade-up fade-4">
+            <div class="slide-heading">References</div>
+            <ol class="ref-list">
+                <li><a href="https://openreview.net/forum?id=d24zTCznJu">Sycophancy Is Not One Thing: Causal Separation of Sycophantic Behaviors in LLMs</a>. ICLR 2026 submission. OpenReview.</li>
+                <li><a href="https://openreview.net/forum?id=igbRHKEiAs">ELEPHANT: Measuring and Understanding Social Sycophancy in LLMs</a>. ICLR 2026 submission. OpenReview.</li>
+                <li><a href="https://arxiv.org/html/2502.08177v2">SycEval: Evaluating LLM Sycophancy</a>. arXiv, Feb 2025.</li>
+                <li><a href="https://arxiv.org/abs/2510.04721">BrokenMath: A Benchmark for Sycophancy in Theorem Proving with LLMs</a>. arXiv, Oct 2025.</li>
+                <li><a href="https://www.nature.com/articles/s41746-025-02008-z">When Helpfulness Backfires: LLMs and the Risk of False Medical Information Due to Sycophantic Behavior</a>. npj Digital Medicine, 2025.</li>
+                <li><a href="https://aclanthology.org/2025.findings-emnlp.121.pdf">Measuring Sycophancy of Language Models in Multi-turn Dialogues</a>. EMNLP 2025 Findings.</li>
+                <li><a href="https://arxiv.org/abs/2510.01395">Sycophantic AI Decreases Prosocial Intentions and Promotes Dependence</a>. arXiv, Oct 2025.</li>
+                <li><a href="https://www.nature.com/articles/s42256-025-01093-9">Emotional Risks of AI Companions Demand Attention</a>. Nature Machine Intelligence, 2025.</li>
+                <li><a href="https://www.syco-bench.com/">Syco-Bench: A Benchmark for LLM Sycophancy</a>. syco-bench.com.</li>
+                <li><a href="https://deepeval.com/docs/benchmarks-truthful-qa">TruthfulQA: Evaluating LLM Truthfulness</a>. DeepEval / Lin et al., 2022.</li>
+                <li><a href="https://www.techpolicy.press/what-research-says-about-ai-sycophancy/">What Research Says About AI Sycophancy</a>. TechPolicy.Press, 2025.</li>
+                <li><a href="https://www.law.georgetown.edu/tech-institute/insights/ai-sycophancy-impacts-harms-questions/">AI Sycophancy: Impacts, Harms & Questions</a>. Georgetown Law Tech Institute.</li>
+            </ol>
+        </div>
+
+    </main>
 </body>
 </html>
