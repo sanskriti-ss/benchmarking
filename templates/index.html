@@ -177,9 +177,12 @@
 
     <script>
         document.getElementById('run-btn').addEventListener('click', async function() {
+            console.log('Button clicked');
             const selectedLlms = [];
             if (document.getElementById('llm-openai').checked) selectedLlms.push('openai');
             if (document.getElementById('llm-anthropic').checked) selectedLlms.push('anthropic');
+            
+            console.log('Selected LLMs:', selectedLlms);
             
             if (selectedLlms.length === 0) {
                 alert('Please select at least one LLM');
@@ -260,14 +263,6 @@
                 
                 html += `</div></div>`;
             }
-            
-            container.innerHTML = html;
-                        </div>`;
-                    }
-                });
-                
-                html += '</div>';
-            });
             
             container.innerHTML = html;
         }
