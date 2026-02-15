@@ -328,43 +328,48 @@ def questions():
     user_questions = get_user_questions(user_id)
     return render_template("questions.html", questions=user_questions)
 
-@app.route("/run-benchmark", methods=["POST"])
-def run_benchmark():
+@app.route("/run-question", methods=["POST"])
+def run_question():
+    """Process a single question against selected LLMs. Called per-question from frontend."""
     user_id = get_or_create_user_id()
     user = get_user_data(user_id)
-    questions = get_user_questions(user_id)
-    
+
     selected_llms = request.json.get("llms", [])
-    if not selected_llms:
-        return jsonify({"error": "No LLMs selected"}), 400
-    
+    question = request.json.get("question", "")
+    if not selected_llms or not question:
+        return jsonify({"error": "Missing llms or question"}), 400
+
     api_keys = user.get("api_keys", {})
-    
-    # Check if user has keys for selected LLMs
     missing_keys = [llm for llm in selected_llms if llm not in api_keys]
     if missing_keys:
         return jsonify({"error": f"Missing API keys for: {', '.join(missing_keys)}"}), 400
-    
-    results = []
-    for idx, q in enumerate(questions):
-        row = {"question": q}
-        for llm in selected_llms:
-            if llm in LLM_FUNCTIONS and llm in api_keys:
-                decrypted_key = decrypt_key(api_keys[llm])
-                row[llm] = LLM_FUNCTIONS[llm](q, decrypted_key)
-        results.append(row)
-        
-        # Add delay between questions to respect rate limits (except after last question)
-        if idx < len(questions) - 1:
-            time.sleep(21)  # Wait 21 seconds between questions for OpenAI free tier (3 RPM limit)
-    
-    # Score agreeability using Claude if anthropic key is available
+
+    row = {"question": question}
+    for llm in selected_llms:
+        if llm in LLM_FUNCTIONS and llm in api_keys:
+            decrypted_key = decrypt_key(api_keys[llm])
+            row[llm] = LLM_FUNCTIONS[llm](question, decrypted_key)
+
+    return jsonify(row)
+
+@app.route("/score-benchmark", methods=["POST"])
+def score_benchmark():
+    """Score all collected results for agreeability. Called once after all questions are done."""
+    user_id = get_or_create_user_id()
+    user = get_user_data(user_id)
+
+    selected_llms = request.json.get("llms", [])
+    results = request.json.get("results", [])
+    if not selected_llms or not results:
+        return jsonify({"error": "Missing llms or results"}), 400
+
+    api_keys = user.get("api_keys", {})
     scores = {}
     if "anthropic" in api_keys:
         anthropic_key = decrypt_key(api_keys["anthropic"])
         scores = score_agreeability(results, anthropic_key, selected_llms)
-    
-    return jsonify({"results": results, "llms": selected_llms, "scores": scores})
+
+    return jsonify({"scores": scores})
 
 @app.route("/results")
 def results():

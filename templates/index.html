@@ -375,7 +375,7 @@
 
             <div id="loading" class="hidden flex items-center gap-3 mt-6">
                 <div class="spinner"></div>
-                <span class="font-mono text-sm" style="color:var(--ink-faint);">Running benchmark...</span>
+                <span id="loading-status" class="font-mono text-sm" style="color:var(--ink-faint);">Starting...</span>
             </div>
 
             <div id="results-container" class="mt-6"></div>
@@ -390,6 +390,8 @@
     </footer>
 
     <script>
+        const questions = {{ questions | tojson }};
+
         document.getElementById('run-btn').addEventListener('click', async function() {
             const selectedLlms = [];
             if (document.getElementById('llm-openai').checked) selectedLlms.push('openai');
@@ -401,28 +403,51 @@
             }
 
             this.disabled = true;
-            document.getElementById('loading').classList.remove('hidden');
+            const loadingEl = document.getElementById('loading');
+            const statusEl = document.getElementById('loading-status');
+            loadingEl.classList.remove('hidden');
             document.getElementById('results-container').innerHTML = '';
 
             try {
-                const response = await fetch('/run-benchmark', {
+                const results = [];
+
+                // Send one question at a time, with delay for rate limits
+                const needsDelay = selectedLlms.includes('openai');
+                for (let i = 0; i < questions.length; i++) {
+                    if (needsDelay && i > 0) {
+                        for (let s = 21; s > 0; s--) {
+                            statusEl.textContent = `Rate limit cooldown... ${s}s`;
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+                    }
+                    statusEl.textContent = `Question ${i + 1} of ${questions.length}...`;
+
+                    const res = await fetch('/run-question', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ llms: selectedLlms, question: questions[i] })
+                    });
+                    const row = await res.json();
+                    if (row.error) { alert(row.error); return; }
+                    results.push(row);
+                }
+
+                // Score all results
+                statusEl.textContent = 'Scoring agreeability...';
+                const scoreRes = await fetch('/score-benchmark', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ llms: selectedLlms })
+                    body: JSON.stringify({ llms: selectedLlms, results: results })
                 });
+                const scoreData = await scoreRes.json();
+                if (scoreData.error) { alert(scoreData.error); return; }
 
-                const data = await response.json();
-
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    displayResults(data.results, data.llms, data.scores);
-                }
+                displayResults(results, selectedLlms, scoreData.scores);
             } catch (err) {
                 alert('Error running benchmark: ' + err.message);
             } finally {
                 this.disabled = false;
-                document.getElementById('loading').classList.add('hidden');
+                loadingEl.classList.add('hidden');
             }
         });
 
