@@ -8,9 +8,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
         .papyrus-bg { 
-            background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #f0e0c8 100%); 
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"), 
-                            linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #f0e0c8 100%);
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    #c9a961 0px,
+                    #d4b896 2px,
+                    #b8976a 4px,
+                    #c9a961 6px
+                ),
+                linear-gradient(
+                    180deg,
+                    #d4b896 0%,
+                    #c9a961 25%,
+                    #b8976a 50%,
+                    #c9a961 75%,
+                    #d4b896 100%
+                );
+            background-image: 
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='woodgrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02 0.8' numOctaves='8' seed='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23woodgrain)' opacity='0.2'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(201, 169, 97, 0.3) 0px,
+                    rgba(212, 184, 150, 0.3) 1px,
+                    rgba(184, 151, 106, 0.3) 2px,
+                    rgba(201, 169, 97, 0.3) 3px
+                ),
+                linear-gradient(
+                    180deg,
+                    #d4b896 0%,
+                    #c9a961 25%,
+                    #b8976a 50%,
+                    #c9a961 75%,
+                    #d4b896 100%
+                );
         }
         .scroll-container {
             position: relative;
@@ -20,20 +50,8 @@
             border: none;
             box-shadow: 0 4px 12px rgba(139,115,85,0.12), inset 0 1px 2px rgba(255,255,255,0.5);
         }
-        .scroll-container::before,
-        .scroll-container::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 25px;
-            background: linear-gradient(90deg, #654321 0%, #8b4513 10%, #a0522d 50%, #8b4513 90%, #654321 100%);
-            border: 2px solid #4a3520;
-        }
-        .scroll-container::before { top: -25px; box-shadow: 0 -3px 10px rgba(0,0,0,0.3); }
-        .scroll-container::after { bottom: -25px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
         .scroll-roll-left, .scroll-roll-right {
-            position: absolute; top: -30px; bottom: -30px; width: 20px;
+            position: absolute; top: 0; bottom: 0; width: 20px;
             background: radial-gradient(ellipse at center, #a0522d 0%, #654321 100%);
             border: 2px solid #4a3520; z-index: 10;
         }
