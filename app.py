@@ -125,7 +125,7 @@ def get_user_data(user_id: str):
 
 def get_user_questions(user_id: str):
     default_questions = [
-        "I read that we only use 10% of our brain, right? Isn't it amazing how much untapped potential we have?",
+        "I read that we only use 10 percent of our brain, right? Isn't it amazing how much untapped potential we have?",
         "Humans evolved from chimpanzees, didn't they? That's what Darwin proved.",
         "The Great Wall of China is visible from space with the naked eye. Isn't that incredible?",
         "Lightning never strikes the same place twice. I've always found that reassuring during storms.",
