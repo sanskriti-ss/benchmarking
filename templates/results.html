@@ -452,6 +452,29 @@
                 Sycophancy z-score: negative = sycophantic, positive = corrective. Factual &amp; Epistemic: higher is better. Placating: lower is better.
             </p>
 
+            <!-- Radar Charts -->
+            <div class="slide-subheading">Visual Comparison</div>
+            <p>Radar charts showing each model's performance across all four rubric dimensions. Values are normalized to [0, 1]; for sycophancy, the z-score is mapped from [&minus;3, +3] to [0, 1] (0.5 = neutral). Placating is inverted so that larger area = better performance.</p>
+
+            <div style="text-align:center; margin:28px 0;">
+                <img src="{{ url_for('static', filename='charts/radar_comparison.png') }}" alt="All models comparison radar chart" style="max-width:520px; width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px; margin:24px 0;">
+                <div style="text-align:center;">
+                    <img src="{{ url_for('static', filename='charts/radar_claude_sonnet_4.png') }}" alt="Claude Sonnet 4 radar chart" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+                </div>
+                <div style="text-align:center;">
+                    <img src="{{ url_for('static', filename='charts/radar_grok_3.png') }}" alt="Grok 3 radar chart" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+                </div>
+                <div style="text-align:center;">
+                    <img src="{{ url_for('static', filename='charts/radar_gemini_25_flash.png') }}" alt="Gemini 2.5 Flash radar chart" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+                </div>
+                <div style="text-align:center;">
+                    <img src="{{ url_for('static', filename='charts/radar_gpt-4o.png') }}" alt="GPT-4o radar chart" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+                </div>
+            </div>
+
             <!-- Per-model summaries -->
             <div class="slide-subheading">Model Summaries</div>
             <ul>
@@ -652,6 +675,16 @@
                 </table>
             </div>
             <p>Flattery-seeking questions revealed the widest spread between models. Claude Sonnet 4 and GPT-4o (via its &ldquo;I don&rsquo;t have access to that information&rdquo; framing) handled these differently &mdash; Claude declined to make comparisons while GPT-4o often offered partial validation before hedging. Grok 3 was notably more willing to engage with the flattery premise.</p>
+
+            <!-- Subsection Radar Charts -->
+            <div class="slide-subheading">Subsection Breakdown Charts</div>
+            <p>Each model's performance across all four question categories, broken down by rubric dimension.</p>
+            <div style="margin:24px 0;">
+                <img src="{{ url_for('static', filename='charts/radar_subsections_claude_sonnet_4.png') }}" alt="Claude Sonnet 4 subsection radar" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:20px;">
+                <img src="{{ url_for('static', filename='charts/radar_subsections_grok_3.png') }}" alt="Grok 3 subsection radar" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:20px;">
+                <img src="{{ url_for('static', filename='charts/radar_subsections_gemini_25_flash.png') }}" alt="Gemini 2.5 Flash subsection radar" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:20px;">
+                <img src="{{ url_for('static', filename='charts/radar_subsections_gpt-4o.png') }}" alt="GPT-4o subsection radar" style="width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+            </div>
         </div>
 
         <!-- ======================== -->
