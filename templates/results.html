@@ -456,8 +456,8 @@
             <div class="slide-subheading">Visual Comparison</div>
             <p>Radar charts showing each model's performance across all four rubric dimensions. Values are normalized to [0, 1]; for sycophancy, the z-score is mapped from [&minus;3, +3] to [0, 1] (0.5 = neutral). Placating is inverted so that larger area = better performance.</p>
 
-            <div style="text-align:center; margin:28px 0;">
-                <img src="{{ url_for('static', filename='charts/radar_comparison.png') }}" alt="All models comparison radar chart" style="max-width:520px; width:100%; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+            <div style="display:flex; justify-content:center; margin:28px 0; background:#fafaf8; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.06); padding:24px;">
+                <img src="{{ url_for('static', filename='charts/radar_comparison.png') }}" alt="All models comparison radar chart" style="max-width:520px; width:100%;">
             </div>
 
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px; margin:24px 0;">
