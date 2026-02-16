@@ -4,8 +4,10 @@ import json as json_module
 import requests
 import time
 import csv
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from cryptography.fernet import Fernet
+from werkzeug.security import check_password_hash
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -41,10 +43,37 @@ if USE_DB:
                     questions JSONB NOT NULL DEFAULT '[]'
                 )
             """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS contributions (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT,
+                    email TEXT,
+                    age TEXT,
+                    description TEXT,
+                    question_suggestion TEXT,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS calibrations (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT,
+                    email TEXT,
+                    age TEXT,
+                    description TEXT,
+                    question TEXT,
+                    response_neg1 TEXT,
+                    response_0 TEXT,
+                    response_pos1 TEXT,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
 else:
     # In-memory storage for local development
     _local_users = {}
     _local_questions = {}
+    _local_contributions = []
+    _local_calibrations = []
 
 # Encryption for API keys
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
@@ -481,6 +510,109 @@ def score_benchmark():
 @app.route("/results")
 def results():
     return render_template("results.html")
+
+# ===== Contribute Routes =====
+@app.route("/contribute")
+def contribute():
+    user_id = get_or_create_user_id()
+    existing_questions = get_user_questions(user_id)
+    return render_template("contribute.html", questions=existing_questions)
+
+@app.route("/contribute/question", methods=["POST"])
+def contribute_question():
+    entry = {
+        "name": request.form.get("name", "").strip(),
+        "email": request.form.get("email", "").strip(),
+        "age": request.form.get("age", "").strip(),
+        "description": request.form.get("description", "").strip(),
+        "question_suggestion": request.form.get("question_suggestion", "").strip(),
+    }
+    if not entry["question_suggestion"]:
+        flash("Please enter a question suggestion.", "error")
+        return redirect(url_for("contribute"))
+
+    if USE_DB:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO contributions (name, email, age, description, question_suggestion) VALUES (%s, %s, %s, %s, %s)",
+                    (entry["name"], entry["email"], entry["age"], entry["description"], entry["question_suggestion"])
+                )
+    else:
+        entry["id"] = len(_local_contributions) + 1
+        entry["created_at"] = datetime.now().isoformat()
+        _local_contributions.append(entry)
+
+    flash("Thank you! Your question suggestion has been submitted.", "success")
+    return redirect(url_for("contribute"))
+
+@app.route("/contribute/calibration", methods=["POST"])
+def contribute_calibration():
+    entry = {
+        "name": request.form.get("name", "").strip(),
+        "email": request.form.get("email", "").strip(),
+        "age": request.form.get("age", "").strip(),
+        "description": request.form.get("description", "").strip(),
+        "question": request.form.get("question", "").strip(),
+        "response_neg1": request.form.get("response_neg1", "").strip(),
+        "response_0": request.form.get("response_0", "").strip(),
+        "response_pos1": request.form.get("response_pos1", "").strip(),
+    }
+    if not entry["question"] or not (entry["response_neg1"] or entry["response_0"] or entry["response_pos1"]):
+        flash("Please select a question and provide at least one example response.", "error")
+        return redirect(url_for("contribute"))
+
+    if USE_DB:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO calibrations (name, email, age, description, question, response_neg1, response_0, response_pos1) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (entry["name"], entry["email"], entry["age"], entry["description"], entry["question"], entry["response_neg1"], entry["response_0"], entry["response_pos1"])
+                )
+    else:
+        entry["id"] = len(_local_calibrations) + 1
+        entry["created_at"] = datetime.now().isoformat()
+        _local_calibrations.append(entry)
+
+    flash("Thank you! Your calibration response has been submitted.", "success")
+    return redirect(url_for("contribute"))
+
+# ===== Admin Routes =====
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", "")
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        if ADMIN_PASSWORD_HASH and check_password_hash(ADMIN_PASSWORD_HASH, password):
+            session["is_admin"] = True
+            return redirect(url_for("admin"))
+        flash("Invalid password.", "error")
+        return redirect(url_for("admin_login"))
+    return render_template("admin_login.html")
+
+@app.route("/admin")
+def admin():
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    if USE_DB:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("SELECT * FROM contributions ORDER BY created_at DESC")
+                contributions = cur.fetchall()
+                cur.execute("SELECT * FROM calibrations ORDER BY created_at DESC")
+                calibrations = cur.fetchall()
+    else:
+        contributions = list(reversed(_local_contributions))
+        calibrations = list(reversed(_local_calibrations))
+
+    return render_template("admin.html", contributions=contributions, calibrations=calibrations)
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("is_admin", None)
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true", host="0.0.0.0", port=int(os.getenv("PORT", 5001)))

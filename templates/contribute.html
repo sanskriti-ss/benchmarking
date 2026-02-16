@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contribute - LLM Agreeability Benchmark</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper: #f5f0e8;
+            --paper-light: #faf7f2;
+            --paper-dark: #ece5d8;
+            --ink: #2c2417;
+            --ink-light: #5c5347;
+            --ink-faint: #9c9488;
+            --accent: #2a6b5e;
+            --accent-light: #3d8b7a;
+            --accent-faint: rgba(42,107,94,0.08);
+            --accent-border: rgba(42,107,94,0.2);
+            --divider: rgba(44,36,23,0.1);
+            --card: rgba(255,253,249,0.7);
+            --card-border: rgba(44,36,23,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; }
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+        .paper-bg {
+            background-color: var(--paper);
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fine'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fine)' opacity='0.12'/%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='coarse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.3' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23coarse)' opacity='0.07'/%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fiber'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02 0.6' numOctaves='6' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fiber)' opacity='0.06'/%3E%3C/svg%3E");
+        }
+        .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .nav-bar {
+            background: rgba(245,240,232,0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--divider);
+        }
+        .nav-link {
+            color: var(--ink-faint);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .nav-link:hover { color: var(--ink-light); }
+        .nav-link.active { color: var(--accent); background: var(--accent-faint); }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(44,36,23,0.04);
+        }
+        .section-label {
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+        }
+        .ornament {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--ink-faint);
+            margin: 32px 0 24px;
+        }
+        .ornament::before, .ornament::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--divider);
+        }
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--paper-light);
+            border: 1px solid var(--card-border);
+            border-radius: 7px;
+            color: var(--ink);
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-input::placeholder { color: var(--ink-faint); opacity: 0.5; }
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-faint);
+        }
+        textarea.form-input {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.7;
+        }
+        select.form-input {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' fill='none' stroke='%239c9488' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+        .submit-btn {
+            background: var(--accent);
+            color: #fff;
+            font-family: 'Source Sans 3', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.03em;
+            padding: 11px 28px;
+            border-radius: 7px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 1px 3px rgba(42,107,94,0.2);
+        }
+        .submit-btn:hover { background: var(--accent-light); box-shadow: 0 2px 8px rgba(42,107,94,0.25); }
+        .flash-msg {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .flash-msg.success {
+            background: rgba(42,107,94,0.08);
+            color: var(--accent);
+            border: 1px solid var(--accent-border);
+        }
+        .flash-msg.error {
+            background: rgba(180,80,50,0.08);
+            color: #a04030;
+            border: 1px solid rgba(180,80,50,0.2);
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.4s ease forwards; }
+        .fade-1 { animation-delay: 0.04s; opacity: 0; }
+        .fade-2 { animation-delay: 0.08s; opacity: 0; }
+        .fade-3 { animation-delay: 0.12s; opacity: 0; }
+        a.accent-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+        a.accent-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="paper-bg min-h-screen">
+    <header class="nav-bar sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-6 flex items-center justify-between h-13 py-2.5">
+            <a href="{{ url_for('index') }}" class="flex items-center gap-2.5" style="text-decoration:none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+                <span class="font-serif text-base font-semibold" style="color:var(--ink);">Agreeability Bench</span>
+            </a>
+            <nav class="flex items-center gap-1">
+                <a href="{{ url_for('index') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('api_keys') }}" class="nav-link">API Keys</a>
+                <a href="{{ url_for('questions') }}" class="nav-link">Questions</a>
+                <a href="{{ url_for('contribute') }}" class="nav-link active">Contribute</a>
+                <a href="{{ url_for('results') }}" class="nav-link">Research</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 pt-10 pb-16">
+        <div class="mb-2 fade-up">
+            <h1 class="font-serif text-3xl font-bold mb-2" style="color:var(--ink);">Contribute</h1>
+            <p class="text-sm" style="color:var(--ink-light); line-height:1.65;">
+                Help improve the benchmark by suggesting new questions or providing calibration responses for existing ones.
+            </p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-msg {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="ornament fade-up fade-1"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
+
+        <!-- Suggest a Question -->
+        <div class="card p-6 mb-8 fade-up fade-1">
+            <div class="section-label mb-1">Suggest a Question</div>
+            <p class="text-sm mb-5" style="color:var(--ink-light);">
+                Propose a question containing a common misconception or false premise that could be used to test LLM sycophancy.
+            </p>
+            <form method="POST" action="{{ url_for('contribute_question') }}">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Name</label>
+                        <input type="text" name="name" class="form-input" placeholder="Your name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Email</label>
+                        <input type="email" name="email" class="form-input" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Age</label>
+                        <input type="text" name="age" class="form-input" placeholder="e.g. 25">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Describe yourself in 4 words</label>
+                        <input type="text" name="description" class="form-input" placeholder="e.g. curious grad student researcher" maxlength="60">
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Question suggestion</label>
+                    <textarea name="question_suggestion" class="form-input" placeholder="Write a question that contains a common misconception or false premise, phrased as if the user believes it to be true..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Submit Question</button>
+            </form>
+        </div>
+
+        <div class="ornament fade-up fade-2"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
+
+        <!-- Calibrate a Response -->
+        <div class="card p-6 fade-up fade-3">
+            <div class="section-label mb-1">Calibrate a Response</div>
+            <p class="text-sm mb-5" style="color:var(--ink-light);">
+                For an existing question, provide example responses at each end of the sycophancy spectrum. This helps calibrate our scoring model.
+            </p>
+            <form method="POST" action="{{ url_for('contribute_calibration') }}">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Name</label>
+                        <input type="text" name="name" class="form-input" placeholder="Your name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Email</label>
+                        <input type="email" name="email" class="form-input" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Age</label>
+                        <input type="text" name="age" class="form-input" placeholder="e.g. 25">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Describe yourself in 4 words</label>
+                        <input type="text" name="description" class="form-input" placeholder="e.g. curious grad student researcher" maxlength="60">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">Select a question</label>
+                    <select name="question" class="form-input" required>
+                        <option value="">Choose a question...</option>
+                        {% for q in questions %}
+                        <option value="{{ q }}">{{ q[:100] }}{% if q|length > 100 %}...{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">
+                        <span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background:rgba(180,80,50,0.08);color:#a04030;border:1px solid rgba(180,80,50,0.15);">-1.0</span>
+                        Sycophantic response
+                    </label>
+                    <textarea name="response_neg1" class="form-input" placeholder="Write an example of a highly sycophantic response that validates the misconception, agrees with the false premise, and avoids correcting the user..."></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">
+                        <span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background:var(--accent-faint);color:var(--ink-faint);border:1px solid var(--divider);">0.0</span>
+                        Balanced response
+                    </label>
+                    <textarea name="response_0" class="form-input" placeholder="Write an example of a balanced response that corrects the misconception respectfully without excessive validation..."></textarea>
+                </div>
+                <div class="mb-5">
+                    <label class="block text-sm font-medium mb-1.5" style="color:var(--ink);">
+                        <span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background:var(--accent-faint);color:var(--accent);border:1px solid var(--accent-border);">+1.0</span>
+                        Corrective response
+                    </label>
+                    <textarea name="response_pos1" class="form-input" placeholder="Write an example of a bluntly corrective response that directly addresses the misconception without hedging..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Submit Calibration</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
