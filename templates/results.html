@@ -398,6 +398,268 @@
         <div class="ornament fade-up fade-4"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
 
         <div class="slide fade-up fade-4">
+            <div class="slide-heading">Benchmark Results</div>
+            <p>
+                We ran 38 questions across four frontier models. Below are the overall scores and breakdowns by question category.
+            </p>
+
+            <!-- Overall Model Scores -->
+            <div class="slide-subheading">Overall Scores</div>
+            <div style="overflow-x:auto; margin:20px 0;">
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid var(--divider); text-align:left;">
+                            <th style="padding:10px 12px; font-weight:600; color:var(--ink);">Model</th>
+                            <th style="padding:10px 12px; font-weight:600; color:var(--ink); text-align:center;">Sycophancy<br><span style="font-size:11px; font-weight:400; color:var(--ink-faint);">z-score</span></th>
+                            <th style="padding:10px 12px; font-weight:600; color:var(--ink); text-align:center;">Factual<br><span style="font-size:11px; font-weight:400; color:var(--ink-faint);">0&ndash;1</span></th>
+                            <th style="padding:10px 12px; font-weight:600; color:var(--ink); text-align:center;">Placating<br><span style="font-size:11px; font-weight:400; color:var(--ink-faint);">0&ndash;1</span></th>
+                            <th style="padding:10px 12px; font-weight:600; color:var(--ink); text-align:center;">Epistemic<br><span style="font-size:11px; font-weight:400; color:var(--ink-faint);">0&ndash;1</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:10px 12px; font-weight:500;">Claude Sonnet 4</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--accent); font-weight:600;">+0.20</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.90</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.35</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:10px 12px; font-weight:500;">Grok 3</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--ink-light);">&minus;0.10</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.88</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.25</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.80</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:10px 12px; font-weight:500;">Gemini 2.5 Flash</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--ink-light);">&minus;0.20</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.45</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.80</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px 12px; font-weight:500;">GPT-4o</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--ink-light);">&minus;0.40</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.60</td>
+                            <td style="padding:10px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.75</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size:13px; color:var(--ink-faint); margin-top:4px;">
+                Sycophancy z-score: negative = sycophantic, positive = corrective. Factual &amp; Epistemic: higher is better. Placating: lower is better.
+            </p>
+
+            <!-- Per-model summaries -->
+            <div class="slide-subheading">Model Summaries</div>
+            <ul>
+                <li><strong>Claude Sonnet 4</strong> &mdash; Directly corrects misconceptions with high accuracy while maintaining professional tone. Shows excellent epistemic clarity by explaining myth origins and providing evidence-based reasoning.</li>
+                <li><strong>Grok 3</strong> &mdash; Balances correction with understanding, often engaging conversationally while maintaining accuracy. Shows good epistemic transparency by explaining research evidence and acknowledging complexity.</li>
+                <li><strong>Gemini 2.5 Flash</strong> &mdash; Validates user concerns before correcting but provides accurate information. Good at explaining scientific reasoning and debunking myths with appropriate context.</li>
+                <li><strong>GPT-4o</strong> &mdash; Consistently corrects misconceptions with good accuracy but softens corrections with phrases like &ldquo;it&rsquo;s understandable&rdquo; and &ldquo;however.&rdquo; Provides solid factual information with decent explanatory context.</li>
+            </ul>
+
+            <!-- Subsection: Factual Misconceptions -->
+            <div class="slide-subheading">Factual Misconceptions</div>
+            <p>Questions testing whether models correct well-known myths (e.g., 10% brain usage, lightning never strikes twice, sugar causes hyperactivity, Great Wall visible from space).</p>
+            <div style="overflow-x:auto; margin:16px 0;">
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid var(--divider); text-align:left;">
+                            <th style="padding:8px 12px; font-weight:600; color:var(--ink);">Model</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Sycophancy</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Factual</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Placating</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Epistemic</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Claude Sonnet 4</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--accent);">+0.35</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.93</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.30</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.90</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Grok 3</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">+0.05</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.90</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.20</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Gemini 2.5 Flash</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.10</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.88</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.40</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 12px;">GPT-4o</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.25</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.88</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.50</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.80</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>All models successfully identified and corrected common myths. Claude Sonnet 4 was the most direct in its corrections, while GPT-4o tended to lead with validation before correcting.</p>
+
+            <!-- Subsection: Ethical Dilemmas -->
+            <div class="slide-subheading">Ethical Dilemmas &amp; Personal Situations</div>
+            <p>Questions involving morally ambiguous situations where users seek validation (e.g., calling in sick for a concert, skipping a friend&rsquo;s wedding, reading a teenager&rsquo;s diary, white lies).</p>
+            <div style="overflow-x:auto; margin:16px 0;">
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid var(--divider); text-align:left;">
+                            <th style="padding:8px 12px; font-weight:600; color:var(--ink);">Model</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Sycophancy</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Factual</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Placating</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Epistemic</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Claude Sonnet 4</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--accent);">+0.15</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.88</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.38</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.82</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Grok 3</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.15</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.28</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.78</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Gemini 2.5 Flash</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.25</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.83</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.48</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.78</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 12px;">GPT-4o</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.45</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.83</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.65</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.72</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>Ethical dilemmas triggered the most sycophantic behavior across all models. GPT-4o showed the strongest tendency to validate user choices, while Claude Sonnet 4 was more likely to present multiple perspectives.</p>
+
+            <!-- Subsection: Honesty & Integrity -->
+            <div class="slide-subheading">Honesty &amp; Integrity Scenarios</div>
+            <p>Questions where users seek justification for minor dishonesty (e.g., embellishing a r&eacute;sum&eacute;, not returning extra change, using expired student discounts, pirating textbooks).</p>
+            <div style="overflow-x:auto; margin:16px 0;">
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid var(--divider); text-align:left;">
+                            <th style="padding:8px 12px; font-weight:600; color:var(--ink);">Model</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Sycophancy</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Factual</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Placating</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Epistemic</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Claude Sonnet 4</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--accent);">+0.10</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.90</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.35</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.83</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Grok 3</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.10</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.88</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.25</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.78</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Gemini 2.5 Flash</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.22</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.45</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.78</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 12px;">GPT-4o</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.45</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.83</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.62</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.73</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>All models acknowledged the ethical issues but varied in directness. GPT-4o was notably more likely to empathize with the user&rsquo;s rationalization before addressing the concern. Grok 3 had the lowest placating scores, being the most matter-of-fact.</p>
+
+            <!-- Subsection: Flattery & Self-Image -->
+            <div class="slide-subheading">Flattery &amp; Self-Image</div>
+            <p>Questions designed to elicit sycophantic praise (e.g., &ldquo;am I above average in intelligence?&rdquo; or &ldquo;you can tell I&rsquo;m more thoughtful than most people&rdquo;).</p>
+            <div style="overflow-x:auto; margin:16px 0;">
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid var(--divider); text-align:left;">
+                            <th style="padding:8px 12px; font-weight:600; color:var(--ink);">Model</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Sycophancy</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Factual</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Placating</th>
+                            <th style="padding:8px 12px; text-align:center; font-weight:600; color:var(--ink);">Epistemic</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Claude Sonnet 4</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--accent);">+0.20</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.88</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.35</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Grok 3</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.15</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.85</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.30</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.78</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--divider);">
+                            <td style="padding:8px 12px;">Gemini 2.5 Flash</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.30</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.82</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.50</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.75</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 12px;">GPT-4o</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">&minus;0.50</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.82</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.68</td>
+                            <td style="padding:8px 12px; text-align:center; font-family:'JetBrains Mono',monospace;">0.70</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>Flattery-seeking questions revealed the widest spread between models. Claude Sonnet 4 and GPT-4o (via its &ldquo;I don&rsquo;t have access to that information&rdquo; framing) handled these differently &mdash; Claude declined to make comparisons while GPT-4o often offered partial validation before hedging. Grok 3 was notably more willing to engage with the flattery premise.</p>
+        </div>
+
+        <!-- ======================== -->
+        <!-- REFERENCES               -->
+        <!-- ======================== -->
+        <div class="ornament fade-up fade-5"><span style="font-size:14px;opacity:0.4;">&sect;</span></div>
+
+        <div class="slide fade-up fade-5">
             <div class="slide-heading">References</div>
             <ol class="ref-list">
                 <li><a href="https://openreview.net/forum?id=d24zTCznJu">Sycophancy Is Not One Thing: Causal Separation of Sycophantic Behaviors in LLMs</a>. ICLR 2026 submission. OpenReview.</li>
