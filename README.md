@@ -2,6 +2,8 @@
 
 A web application for testing how different LLMs respond to misconceptions and ethical dilemmas. Deploy it on Render and let users run their own benchmarks with their own API keys.
 
+Our main findings are [here](main_findings.md).
+
 ## Features
 
 - **Multi-LLM Support**: Test OpenAI (GPT) and Anthropic (Claude) models
