@@ -15,65 +15,80 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY") or "dev-secret-key-change-in-production"
 
-# Database setup — PostgreSQL in production, in-memory for local dev
+# Database setup — PostgreSQL in production, in-memory fallback when unavailable
 DATABASE_URL = os.getenv("DATABASE_URL")
-USE_DB = bool(DATABASE_URL)
+NO_DATABASE_MODE = os.getenv("NO_DATABASE_MODE", "").lower() in {"1", "true", "yes", "on"}
+USE_DB = bool(DATABASE_URL) and not NO_DATABASE_MODE
+DB_AVAILABLE = False
 
-if USE_DB:
-    import psycopg2
-    import psycopg2.extras
 
-    def get_db():
-        conn = psycopg2.connect(DATABASE_URL)
-        conn.autocommit = True
-        return conn
-
-    # Create tables on startup
-    with get_db() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    user_id TEXT PRIMARY KEY,
-                    api_keys JSONB NOT NULL DEFAULT '{}'
-                )
-            """)
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS questions (
-                    user_id TEXT PRIMARY KEY,
-                    questions JSONB NOT NULL DEFAULT '[]'
-                )
-            """)
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS contributions (
-                    id SERIAL PRIMARY KEY,
-                    name TEXT,
-                    email TEXT,
-                    age TEXT,
-                    description TEXT,
-                    question_suggestion TEXT,
-                    created_at TIMESTAMP DEFAULT NOW()
-                )
-            """)
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS calibrations (
-                    id SERIAL PRIMARY KEY,
-                    name TEXT,
-                    email TEXT,
-                    age TEXT,
-                    description TEXT,
-                    question TEXT,
-                    response_neg1 TEXT,
-                    response_0 TEXT,
-                    response_pos1 TEXT,
-                    created_at TIMESTAMP DEFAULT NOW()
-                )
-            """)
-else:
-    # In-memory storage for local development
+def init_local_storage():
+    global _local_users, _local_questions, _local_contributions, _local_calibrations, _session_api_keys
     _local_users = {}
     _local_questions = {}
     _local_contributions = []
     _local_calibrations = []
+    _session_api_keys = {}
+
+
+if USE_DB:
+    try:
+        import psycopg2
+        import psycopg2.extras
+
+        def get_db():
+            conn = psycopg2.connect(DATABASE_URL)
+            conn.autocommit = True
+            return conn
+
+        # Create tables on startup
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        user_id TEXT PRIMARY KEY,
+                        api_keys JSONB NOT NULL DEFAULT '{}'
+                    )
+                """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS questions (
+                        user_id TEXT PRIMARY KEY,
+                        questions JSONB NOT NULL DEFAULT '[]'
+                    )
+                """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS contributions (
+                        id SERIAL PRIMARY KEY,
+                        name TEXT,
+                        email TEXT,
+                        age TEXT,
+                        description TEXT,
+                        question_suggestion TEXT,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS calibrations (
+                        id SERIAL PRIMARY KEY,
+                        name TEXT,
+                        email TEXT,
+                        age TEXT,
+                        description TEXT,
+                        question TEXT,
+                        response_neg1 TEXT,
+                        response_0 TEXT,
+                        response_pos1 TEXT,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                """)
+        DB_AVAILABLE = True
+    except Exception as e:
+        # Keep the service alive when the DB is unavailable (expired plan, bad URL, etc.)
+        print(f"Database unavailable, falling back to in-memory mode: {e}")
+        USE_DB = False
+        init_local_storage()
+else:
+    init_local_storage()
 
 # Encryption for API keys
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
@@ -349,9 +364,21 @@ def get_user_data(user_id: str):
                 api_keys["anthropic"] = encrypt_key(anthropic_env)
             if dedalus_env:
                 api_keys["dedalus"] = encrypt_key(dedalus_env)
-            _local_users[user_id] = {"user_id": user_id, "api_keys": api_keys}
+            # In NO_DATABASE_MODE, user-submitted keys should be session-scoped only.
+            if NO_DATABASE_MODE:
+                _local_users[user_id] = {"user_id": user_id, "api_keys": {}}
+            else:
+                _local_users[user_id] = {"user_id": user_id, "api_keys": api_keys}
         user = _local_users[user_id]
     return user
+
+
+def get_api_keys_for_user(user_id: str, user: dict) -> dict:
+    api_keys = dict(user.get("api_keys", {}))
+    if NO_DATABASE_MODE:
+        # Session-scoped keys in no-DB mode (temporary, in-memory only).
+        api_keys.update(_session_api_keys.get(user_id, {}))
+    return api_keys
 
 def get_user_questions(user_id: str):
     # Load questions from CSV file
@@ -396,7 +423,7 @@ def index():
     user_id = get_or_create_user_id()
     user = get_user_data(user_id)
     questions = get_user_questions(user_id)
-    has_keys = bool(user.get("api_keys"))
+    has_keys = bool(get_api_keys_for_user(user_id, user))
     return render_template("index.html", questions=questions, has_keys=has_keys)
 
 @app.route("/api-keys", methods=["GET", "POST"])
@@ -417,7 +444,10 @@ def api_keys():
         if dedalus_key:
             new_api_keys["dedalus"] = encrypt_key(dedalus_key)
         
-        if USE_DB:
+        if NO_DATABASE_MODE:
+            _session_api_keys[user_id] = new_api_keys
+            flash("API keys saved for this session only (temporary no-database mode).", "success")
+        elif USE_DB:
             with get_db() as conn:
                 with conn.cursor() as cur:
                     cur.execute("UPDATE users SET api_keys = %s WHERE user_id = %s", (json_module.dumps(new_api_keys), user_id))
@@ -426,7 +456,7 @@ def api_keys():
         return redirect(url_for("index"))
     
     # Show which keys are configured (not the actual keys)
-    configured_keys = list(user.get("api_keys", {}).keys())
+    configured_keys = list(get_api_keys_for_user(user_id, user).keys())
     return render_template("api_keys.html", configured_keys=configured_keys)
 
 @app.route("/questions", methods=["GET", "POST"])
@@ -462,7 +492,7 @@ def run_question():
     if not selected_llms or not question:
         return jsonify({"error": "Missing llms or question"}), 400
 
-    api_keys = user.get("api_keys", {})
+    api_keys = get_api_keys_for_user(user_id, user)
     missing_keys = []
     for llm in selected_llms:
         if llm in DEDALUS_MODELS:
@@ -499,7 +529,7 @@ def score_benchmark():
     if not selected_llms or not results:
         return jsonify({"error": "Missing llms or results"}), 400
 
-    api_keys = user.get("api_keys", {})
+    api_keys = get_api_keys_for_user(user_id, user)
     scores = {}
     if "anthropic" in api_keys:
         anthropic_key = decrypt_key(api_keys["anthropic"])
